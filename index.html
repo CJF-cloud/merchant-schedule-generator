@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Merchant Schedule Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f3f9fb;
+    --surface: #ffffff;
+    --surface2: #e8f4f7;
+    --border: #c9e3ea;
+    --border-strong: #9ec9d4;
+    --primary: #20bdd6;
+    --primary-hover: #18a3bc;
+    --primary-soft: #c5ebf2;
+    --primary-tint: #e8f7fa;
+    --text: #0e3640;
+    --text2: #486870;
+    --text3: #8aa5ac;
+    --radius: 10px;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --shadow-sm: 0 1px 2px rgba(14, 54, 64, 0.04);
+    --shadow-md: 0 4px 12px rgba(14, 54, 64, 0.08);
+  }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; padding: 40px 20px; }
+  .app { max-width: 900px; margin: 0 auto; }
+  .header { margin-bottom: 32px; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--primary); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; font-weight: 500; }
+  .badge::before { content: ''; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
+  h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
+  .subtitle { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+  .tab-nav { display: flex; gap: 4px; padding: 4px; border-radius: var(--radius); margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+  .tab-btn { flex: 1; height: 42px; border: none; background: transparent; font-family: var(--sans); font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.15s; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 7px; }
+  .tab-btn:hover { background: var(--surface2); }
+  .tab-btn.active { background: var(--primary); color: #fff; }
+  .tab-btn svg { width: 15px; height: 15px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+  .card-title { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .card-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .card-title-row .card-title { margin-bottom: 0; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid.four { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  @media (max-width: 600px) { .form-grid, .form-grid.three, .form-grid.four { grid-template-columns: 1fr 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-family: var(--mono); font-size: 11px; color: var(--text2); letter-spacing: 0.04em; font-weight: 500; }
+  .field input, .field select, .field textarea {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: none;
+    width: 100%;
+  }
+  .field input, .field select { height: 40px; }
+  .field textarea { padding: 10px 12px; resize: vertical; line-height: 1.5; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(32, 189, 214, 0.18); }
+  .field input[type="date"], .field input[type="time"] { font-family: var(--mono); font-size: 13px; }
+  .field input[type="number"] { font-family: var(--mono); }
+  .field input:disabled { opacity: 0.5; cursor: not-allowed; background: var(--surface2); }
+
+  .datetime-combo { display: grid; grid-template-columns: 1fr 0.7fr; gap: 6px; }
+
+  /* Field label with toggle switch */
+  .field-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+  .toggle-inline { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
+  .toggle-inline input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    width: 30px; height: 16px;
+    background: #cfd8de;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin: 0;
+    flex-shrink: 0;
+    box-shadow: inset 0 1px 2px rgba(14, 54, 64, 0.08);
+  }
+  .toggle-inline input[type="checkbox"]::after {
+    content: '';
+    position: absolute;
+    top: 1.5px; left: 1.5px;
+    width: 13px; height: 13px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(14, 54, 64, 0.25);
+    transition: left 0.2s ease;
+  }
+  .toggle-inline input[type="checkbox"]:checked {
+    background: var(--primary);
+  }
+  .toggle-inline input[type="checkbox"]:checked::after {
+    left: 15.5px;
+  }
+  .toggle-inline span { font-family: var(--sans); font-size: 11px; color: var(--text2); font-weight: 400; }
+  .toggle-inline span code { font-family: var(--mono); font-size: 10px; background: var(--surface2); padding: 1px 5px; border-radius: 3px; color: var(--primary); }
+
+  /* Naming toggle */
+  .naming-toggle { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; height: 40px; margin-bottom: 16px; background: var(--surface); }
+  .naming-toggle button { border: none; border-right: 1px solid var(--border); background: transparent; font-family: var(--sans); font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.15s; font-weight: 500; }
+  .naming-toggle button:last-child { border-right: none; }
+  .naming-toggle button:hover:not(.active) { background: var(--surface2); }
+  .naming-toggle button.active { background: var(--primary); color: #fff; }
+
+  .naming-panel { display: none; background: var(--primary-tint); border: 1px solid var(--primary-soft); border-radius: 8px; padding: 16px; margin-bottom: 4px; }
+  .naming-panel.visible { display: block; }
+  .naming-hint { font-size: 12px; color: var(--text2); font-family: var(--mono); }
+  .naming-hint strong { color: var(--primary); font-weight: 600; }
+  .preview-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--primary-soft); border-radius: 20px; padding: 5px 12px; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--text2); flex-wrap: wrap; }
+  .preview-pill span { color: var(--primary); font-weight: 500; }
+
+  .custom-seed-row { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--primary-soft); flex-wrap: wrap; }
+  .custom-seed-row .field { flex: 1; min-width: 160px; }
+  .fill-btn { height: 40px; padding: 0 16px; border: 1px solid var(--primary); border-radius: 7px; background: var(--surface); color: var(--primary); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
+  .fill-btn:hover { background: var(--primary); color: #fff; }
+  .custom-scroll { max-height: 240px; overflow-y: auto; }
+  .custom-row-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--primary-soft); }
+  .custom-row-item:last-child { border-bottom: none; }
+  .custom-row-num { font-family: var(--mono); font-size: 11px; color: var(--text3); min-width: 24px; font-weight: 500; }
+  .custom-row-item input { flex: 1; height: 34px; border: 1px solid var(--border); border-radius: 7px; padding: 0 10px; font-family: var(--sans); font-size: 13px; color: var(--text); background: var(--surface); }
+  .custom-row-item input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(32, 189, 214, 0.18); }
+
+  .cadence-toggle { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; height: 40px; background: var(--surface); }
+  .cadence-toggle button { border: none; background: transparent; font-family: var(--sans); font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.15s; font-weight: 500; }
+  .cadence-toggle button:first-child { border-right: 1px solid var(--border); }
+  .cadence-toggle button:hover:not(.active) { background: var(--surface2); }
+  .cadence-toggle button.active { background: var(--primary); color: #fff; }
+
+  /* Times toggle header */
+  .check-header { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; padding: 5px 12px; border-radius: 7px; background: var(--surface2); transition: background 0.15s; }
+  .check-header:hover { background: var(--primary-soft); }
+  .check-header input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    position: relative;
+    width: 34px; height: 18px;
+    background: #cfd8de;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin: 0; flex-shrink: 0;
+    box-shadow: inset 0 1px 2px rgba(14, 54, 64, 0.08);
+  }
+  .check-header input[type="checkbox"]::after {
+    content: '';
+    position: absolute;
+    top: 1.5px; left: 1.5px;
+    width: 15px; height: 15px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(14, 54, 64, 0.25);
+    transition: left 0.2s ease;
+  }
+  .check-header input[type="checkbox"]:checked { background: var(--primary); }
+  .check-header input[type="checkbox"]:checked::after { left: 17.5px; }
+  .check-header span { font-family: var(--mono); font-size: 11px; color: var(--text2); letter-spacing: 0.04em; font-weight: 500; }
+
+  .slider-row { display: flex; align-items: center; gap: 14px; }
+  .slider-row input[type=range] {
+    flex: 1; -webkit-appearance: none;
+    height: 4px; border-radius: 2px;
+    background: var(--border); outline: none;
+  }
+  .slider-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--primary);
+  }
+  .slider-val { font-family: var(--mono); font-size: 13px; color: var(--primary); min-width: 70px; text-align: right; font-weight: 500; }
+
+  .generate-btn { width: 100%; height: 48px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius); font-family: var(--sans); font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.15s; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-md); }
+  .generate-btn:hover { background: var(--primary-hover); }
+  .generate-btn:active { transform: scale(0.99); }
+  .generate-btn svg { width: 18px; height: 18px; }
+
+  .results-section { display: none; }
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+  .results-meta { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+  .results-meta span { color: var(--primary); font-weight: 600; }
+  .action-btns { display: flex; gap: 8px; }
+  .action-btn { height: 36px; padding: 0 16px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-family: var(--sans); font-size: 13px; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.12s; font-weight: 500; }
+  .action-btn:hover { background: var(--surface2); border-color: var(--border-strong); }
+  .action-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .action-btn.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+  .action-btn svg { width: 15px; height: 15px; }
+
+  .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); box-shadow: var(--shadow-sm); }
+  .table-scroll { overflow-x: auto; max-height: 380px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { position: sticky; top: 0; z-index: 1; }
+  thead th { background: var(--primary); color: rgba(255,255,255,0.92); font-family: var(--mono); font-size: 11px; font-weight: 500; text-align: left; padding: 11px 14px; letter-spacing: 0.06em; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--primary-tint); }
+  tbody td { padding: 9px 14px; color: var(--text); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  tbody td.name-cell { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--primary); }
+  .row-num { color: var(--text3); font-size: 11px; }
+
+  .raw-area { width: 100%; min-height: 180px; font-family: var(--mono); font-size: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); resize: vertical; line-height: 1.6; }
+  .raw-area:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(32, 189, 214, 0.18); }
+  .col-mapper { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 16px; }
+  @media (max-width: 600px) { .col-mapper { grid-template-columns: 1fr; } }
+  .col-mapper .field select { font-family: var(--mono); font-size: 12px; }
+  .info-box { background: var(--primary-tint); border: 1px solid var(--primary-soft); border-radius: 8px; padding: 14px 16px; font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 16px; }
+  .detected-cols { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .col-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-family: var(--mono); font-size: 11px; color: var(--text2); transition: all 0.15s; }
+  .col-pill.mapped { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+  .clean-btn { height: 48px; width: 100%; background: var(--primary); color: #fff; border: none; border-radius: var(--radius); font-family: var(--sans); font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s; box-shadow: var(--shadow-md); }
+  .clean-btn:hover { background: var(--primary-hover); }
+  .clean-btn svg { width: 18px; height: 18px; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; padding: 12px 20px; border-radius: 30px; font-size: 13px; font-weight: 500; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; white-space: nowrap; box-shadow: 0 8px 24px rgba(14, 54, 64, 0.25); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <span class="badge">Merchant Ops</span>
+    <h1>Schedule Generator</h1>
+    <p class="subtitle">Generate and clean merchant audit schedules</p>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('generate', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Generate Schedule
+    </button>
+    <button class="tab-btn" onclick="switchTab('clean', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      Clean Raw Schedule
+    </button>
+  </div>
+
+  <!-- TAB 1: GENERATE -->
+  <div class="tab-panel active" id="tab-generate">
+    <div class="card">
+      <div class="card-title">Flyer Details</div>
+      <div class="form-grid" style="margin-bottom: 24px;">
+        <div class="field">
+          <label>flyer_type_id</label>
+          <input type="text" id="ftype" placeholder="e.g. 1000" value="1000" />
+        </div>
+        <div class="field">
+          <label>cadence</label>
+          <div class="cadence-toggle">
+            <button class="active" onclick="setCadence(7, this)">Weekly</button>
+            <button onclick="setCadence(14, this)">Biweekly</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-title">Name Convention</div>
+      <div class="naming-toggle">
+        <button class="active" onclick="setNaming('date', this)">Date</button>
+        <button onclick="setNaming('prefix', this)">Prefix + #</button>
+        <button onclick="setNaming('custom', this)">Custom</button>
+      </div>
+
+      <div class="naming-panel visible" id="panel-date">
+        <div class="naming-hint">Name = <strong>available_from</strong> date as <strong>Mon DD</strong></div>
+        <div class="preview-pill">Preview: <span>Dec 29</span> → <span>Jan 5</span> → <span>Jan 12</span></div>
+      </div>
+
+      <div class="naming-panel" id="panel-prefix">
+        <div class="form-grid three">
+          <div class="field">
+            <label>prefix text</label>
+            <input type="text" id="prefix-text" placeholder="e.g. Week" value="Week" oninput="updatePrefixPreview()" />
+          </div>
+          <div class="field">
+            <label>start number</label>
+            <input type="number" id="prefix-start" placeholder="39" value="39" min="1" max="52" oninput="updatePrefixPreview()" />
+          </div>
+          <div class="field">
+            <label>increment by</label>
+            <input type="number" id="prefix-step" placeholder="1" value="1" min="1" oninput="updatePrefixPreview()" />
+          </div>
+        </div>
+        <div style="margin-top:14px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <label class="toggle-inline">
+            <input type="checkbox" id="prefix-calendar-cb" onchange="updatePrefixPreview()" />
+            <span>Calendar mode (roll over months — e.g. <code>Jun 30</code> → <code>Jul 7</code>)</span>
+          </label>
+        </div>
+        <div class="naming-hint" id="prefix-rollover-hint" style="margin-top:10px; font-size:11px;">↺ After week 52, number wraps back to <strong>01</strong></div>
+        <div class="preview-pill" id="prefix-preview" style="margin-top:8px;">Preview: <span>Week 39</span> → <span>Week 40</span> → <span>Week 41</span></div>
+      </div>
+
+      <div class="naming-panel" id="panel-custom">
+        <div class="custom-seed-row">
+          <div class="field">
+            <label>seed name (row 1)</label>
+            <input type="text" id="custom-seed" placeholder="e.g. Coming Attractions Week 41" oninput="updateCustomHint()" />
+          </div>
+          <div class="field" style="flex:0 0 80px;">
+            <label>increment #</label>
+            <input type="number" id="custom-step" placeholder="1" value="1" min="1" oninput="updateCustomHint()" />
+          </div>
+          <button class="fill-btn" onclick="fillCustomFromSeed()">Auto-fill ↓</button>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label class="toggle-inline">
+            <input type="checkbox" id="custom-calendar-cb" onchange="updateCustomHint()" />
+            <span>Calendar mode (roll over months — e.g. <code>Jun 30</code> → <code>Jul 7</code>)</span>
+          </label>
+        </div>
+        <div class="naming-hint" id="custom-seed-hint" style="margin-bottom:10px;">Enter row 1 name — the last number wraps back to 01 after 52.</div>
+        <div class="custom-scroll" id="custom-names-list"></div>
+      </div>
+
+      <div class="card-title-row" style="margin-top:24px;">
+        <div class="card-title">First Period Dates</div>
+        <label class="check-header">
+          <input type="checkbox" id="time-toggle" onchange="toggleTimes()" />
+          <span>Include times</span>
+        </label>
+      </div>
+
+      <div class="form-grid" style="margin-bottom: 20px;">
+        <div class="field">
+          <div class="field-label-row">
+            <label>available_from</label>
+          </div>
+          <div class="datetime-combo">
+            <input type="date" id="avail-from" oninput="syncMirroredFields()" />
+            <input type="time" id="avail-from-t" class="time-input" value="01:00" step="60" style="display:none;" oninput="syncMirroredFields()" />
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label-row">
+            <label>available_to</label>
+          </div>
+          <div class="datetime-combo">
+            <input type="date" id="avail-to" oninput="syncMirroredFields()" />
+            <input type="time" id="avail-to-t" class="time-input" value="00:59" step="60" style="display:none;" oninput="syncMirroredFields()" />
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label-row">
+            <label>valid_from</label>
+            <label class="toggle-inline">
+              <input type="checkbox" id="vf-mirror-cb" onchange="toggleMirror('vf')" />
+              <span>same as available_from</span>
+            </label>
+          </div>
+          <div class="datetime-combo">
+            <input type="date" id="valid-from" />
+            <input type="time" id="valid-from-t" class="time-input" value="03:00" step="60" style="display:none;" />
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label-row">
+            <label>valid_to</label>
+            <label class="toggle-inline">
+              <input type="checkbox" id="vt-mirror-cb" onchange="toggleMirror('vt')" />
+              <span>same as available_to</span>
+            </label>
+          </div>
+          <div class="datetime-combo">
+            <input type="date" id="valid-to" />
+            <input type="time" id="valid-to-t" class="time-input" value="23:59" step="60" style="display:none;" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card-title">Number of Periods</div>
+      <div class="slider-row" style="margin-bottom: 24px;">
+        <input type="range" min="1" max="52" value="4" step="1" id="slider" oninput="onSliderChange(this.value)" />
+        <span class="slider-val" id="slider-val">4 periods</span>
+      </div>
+
+      <button class="generate-btn" onclick="generate()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Generate Schedule
+      </button>
+    </div>
+
+    <div class="results-section" id="gen-results">
+      <div class="results-header">
+        <div class="results-meta">Generated <span id="row-count">0</span> rows</div>
+        <div class="action-btns">
+          <button class="action-btn" onclick="copyCSV('gen')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy CSV
+          </button>
+          <button class="action-btn primary" onclick="downloadCSV('gen')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download CSV
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table><thead><tr>
+          <th>#</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th>
+        </tr></thead><tbody id="gen-table-body"></tbody></table>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: CLEAN RAW -->
+  <div class="tab-panel" id="tab-clean">
+    <div class="card">
+      <div class="card-title">Paste Raw Schedule</div>
+      <div class="info-box">
+        Paste any CSV or tab-separated schedule — extra columns and non-standard names are fine. Map your columns below and the app will output a clean standard file. Times are preserved if present in source data.
+      </div>
+      <textarea class="raw-area" id="raw-input" placeholder="Paste your raw CSV or tab-delimited data here, including the header row..." oninput="parseRaw()"></textarea>
+
+      <div id="col-map-section" style="display:none;">
+        <div class="card-title" style="margin-top:20px;">Detected Columns</div>
+        <div class="detected-cols" id="detected-cols"></div>
+
+        <div class="card-title" style="margin-top:20px;">Map to Standard Columns</div>
+        <div class="col-mapper" id="col-mapper"></div>
+
+        <div class="card-title" style="margin-top:20px;">flyer_type_id fallback</div>
+        <div class="form-grid" style="margin-bottom:4px;">
+          <div class="field">
+            <label>flyer_type_id (if not in source)</label>
+            <input type="text" id="clean-ftype" placeholder="e.g. 1000" value="1000" />
+          </div>
+        </div>
+
+        <button class="clean-btn" onclick="cleanAndRender()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Clean & Generate Standard CSV
+        </button>
+      </div>
+    </div>
+
+    <div class="results-section" id="clean-results">
+      <div class="results-header">
+        <div class="results-meta">Cleaned <span id="clean-row-count">0</span> rows</div>
+        <div class="action-btns">
+          <button class="action-btn" onclick="copyCSV('clean')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy CSV
+          </button>
+          <button class="action-btn primary" onclick="downloadCSV('clean')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download CSV
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table><thead><tr>
+          <th>#</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th>
+        </tr></thead><tbody id="clean-table-body"></tbody></table>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let cadenceDays = 7;
+  let namingMode  = 'date';
+  let includeTimes = false;
+  let mirrorVF = false;
+  let mirrorVT = false;
+  let genRows  = [];
+  let cleanRows = [];
+  let rawHeaders = [];
+  let rawData    = [];
+
+  const STD_COLS = ['flyer_type_id','name','available_from','available_to','valid_from','valid_to'];
+
+  function toggleMirror(which) {
+    const checked = document.getElementById(which + '-mirror-cb').checked;
+    if (which === 'vf') {
+      mirrorVF = checked;
+      document.getElementById('valid-from').disabled = mirrorVF;
+      document.getElementById('valid-from-t').disabled = mirrorVF;
+    } else {
+      mirrorVT = checked;
+      document.getElementById('valid-to').disabled = mirrorVT;
+      document.getElementById('valid-to-t').disabled = mirrorVT;
+    }
+    syncMirroredFields();
+  }
+
+  function syncMirroredFields() {
+    if (mirrorVF) {
+      document.getElementById('valid-from').value = document.getElementById('avail-from').value;
+      document.getElementById('valid-from-t').value = document.getElementById('avail-from-t').value;
+    }
+    if (mirrorVT) {
+      document.getElementById('valid-to').value = document.getElementById('avail-to').value;
+      document.getElementById('valid-to-t').value = document.getElementById('avail-to-t').value;
+    }
+  }
+
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active');
+  }
+
+  function setCadence(days, btn) {
+    cadenceDays = days;
+    document.querySelectorAll('.cadence-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function toggleTimes() {
+    includeTimes = document.getElementById('time-toggle').checked;
+    document.querySelectorAll('.time-input').forEach(i => i.style.display = includeTimes ? 'block' : 'none');
+  }
+
+  function setNaming(mode, btn) {
+    namingMode = mode;
+    document.querySelectorAll('.naming-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.naming-panel').forEach(p => p.classList.remove('visible'));
+    document.getElementById('panel-' + mode).classList.add('visible');
+    if (mode === 'custom') rebuildCustomRows();
+  }
+
+  function onSliderChange(val) {
+    document.getElementById('slider-val').textContent = val + ' period' + (val == 1 ? '' : 's');
+    if (namingMode === 'custom') rebuildCustomRows();
+  }
+
+  function wrapWeek(n) { return String(((n - 1) % 52) + 1).padStart(2, '0'); }
+
+  // Calendar-mode helper: given a text like "Jun" and a day-of-month number,
+  // returns a properly rolled-over { monthName, day }
+  const MONTH_NAMES_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTH_NAMES_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function detectMonthIndex(text) {
+    if (!text) return -1;
+    const t = text.trim().toLowerCase();
+    let idx = MONTH_NAMES_SHORT.findIndex(m => m.toLowerCase() === t.slice(0, 3));
+    if (idx === -1) idx = MONTH_NAMES_LONG.findIndex(m => m.toLowerCase() === t);
+    return idx;
+  }
+
+  // Given a starting (monthIdx, day) and an offset in days, returns the rolled-over result
+  function rollMonthDay(monthIdx, day, offsetDays, useLongName) {
+    // Use 2025 (non-leap) as the reference year for cycling; we re-base it after computing
+    const baseYear = 2025;
+    const d = new Date(baseYear, monthIdx, day);
+    d.setDate(d.getDate() + offsetDays);
+    const newMonthIdx = d.getMonth();
+    return {
+      monthName: useLongName ? MONTH_NAMES_LONG[newMonthIdx] : MONTH_NAMES_SHORT[newMonthIdx],
+      day: d.getDate()
+    };
+  }
+
+  // Build a name in calendar mode given prefix text + start number + step
+  // Returns null if prefix text doesn't look like a month
+  function buildCalendarName(prefixText, startNum, stepDays, iterationIndex) {
+    const monthIdx = detectMonthIndex(prefixText);
+    if (monthIdx === -1) return null;
+    const useLong = prefixText.trim().length > 3;
+    const rolled = rollMonthDay(monthIdx, startNum, stepDays * iterationIndex, useLong);
+    return `${rolled.monthName} ${rolled.day}`;
+  }
+
+  // For custom mode: given a seed string with embedded number, advance the date if calendar mode
+  // Returns the new string, or null if no month detected before the number
+  function buildCalendarCustomName(seed, stepDays, iterationIndex) {
+    const all = [...seed.matchAll(/\d+/g)];
+    if (!all.length) return null;
+    const last = all[all.length - 1];
+    // Look at the word immediately before the last number
+    const before = seed.slice(0, last.index).trim();
+    const afterNum = seed.slice(last.index + last[0].length);
+    const words = before.split(/\s+/);
+    const lastWord = words[words.length - 1] || '';
+    const monthIdx = detectMonthIndex(lastWord);
+    if (monthIdx === -1) return null;
+    const useLong = lastWord.length > 3;
+    const startDay = parseInt(last[0]);
+    const rolled = rollMonthDay(monthIdx, startDay, stepDays * iterationIndex, useLong);
+    // Replace the month word + number with rolled values
+    words[words.length - 1] = rolled.monthName;
+    return words.join(' ') + ' ' + rolled.day + afterNum;
+  }
+
+  function updatePrefixPreview() {
+    const p  = document.getElementById('prefix-text').value.trim() || 'Week';
+    const s  = parseInt(document.getElementById('prefix-start').value) || 1;
+    const st = parseInt(document.getElementById('prefix-step').value) || 1;
+    const calMode = document.getElementById('prefix-calendar-cb').checked;
+    const hint = document.getElementById('prefix-rollover-hint');
+
+    if (calMode) {
+      const cal = buildCalendarName(p, s, st, 0);
+      const cal2 = buildCalendarName(p, s, st, 1);
+      const cal3 = buildCalendarName(p, s, st, 2);
+      if (cal !== null) {
+        hint.innerHTML = '📅 Calendar mode: dates roll over to the next month when needed';
+        document.getElementById('prefix-preview').innerHTML =
+          `Preview: <span>${cal}</span> → <span>${cal2}</span> → <span>${cal3}</span>`;
+        return;
+      } else {
+        hint.innerHTML = '<strong style="color:var(--primary)">Calendar mode is on, but the prefix isn\'t a month name — falling back to numeric wrap</strong>';
+      }
+    } else {
+      hint.innerHTML = '↺ After week 52, number wraps back to <strong>01</strong>';
+    }
+
+    document.getElementById('prefix-preview').innerHTML =
+      `Preview: <span>${p} ${wrapWeek(s)}</span> → <span>${p} ${wrapWeek(s+st)}</span> → <span>${p} ${wrapWeek(s+st*2)}</span>`;
+  }
+
+  function extractLastNum(str) {
+    const m = str.match(/\d+/g);
+    return m ? parseInt(m[m.length - 1]) : null;
+  }
+  function replaceLastNum(str, newNum) {
+    const all = [...str.matchAll(/\d+/g)];
+    if (!all.length) return str + ' ' + String(newNum).padStart(2,'0');
+    const last = all[all.length - 1];
+    const padded = String(newNum).padStart(last[0].length >= 2 ? 2 : 1, '0');
+    return str.slice(0, last.index) + padded + str.slice(last.index + last[0].length);
+  }
+
+  function updateCustomHint() {
+    const seed = document.getElementById('custom-seed').value.trim();
+    const step = parseInt(document.getElementById('custom-step').value) || 1;
+    const calMode = document.getElementById('custom-calendar-cb').checked;
+    const hint = document.getElementById('custom-seed-hint');
+
+    if (!seed) {
+      hint.innerHTML = calMode
+        ? 'Calendar mode is on — try a seed like <strong>Jun 30</strong> and dates will roll into the next month.'
+        : 'Enter row 1 name — the last number wraps back to 01 after 52.';
+      return;
+    }
+
+    if (calMode) {
+      const c0 = buildCalendarCustomName(seed, step, 0);
+      const c1 = buildCalendarCustomName(seed, step, 1);
+      const c2 = buildCalendarCustomName(seed, step, 2);
+      if (c0 !== null) {
+        hint.innerHTML = `📅 Preview: <strong>${c0}</strong> → <strong>${c1}</strong> → <strong>${c2}</strong>`;
+        return;
+      } else {
+        hint.innerHTML = '<strong style="color:var(--primary)">Calendar mode is on, but no month name found before the number — falling back to numeric increment</strong>';
+        return;
+      }
+    }
+
+    const num = extractLastNum(seed);
+    if (num === null) {
+      hint.innerHTML = '<strong>No number found</strong> — a row suffix will be appended.';
+    } else {
+      const r2 = replaceLastNum(seed, wrapWeek(num + step));
+      const r3 = replaceLastNum(seed, wrapWeek(num + step * 2));
+      hint.innerHTML = `Preview: <strong>${seed}</strong> → <strong>${r2}</strong> → <strong>${r3}</strong>`;
+    }
+  }
+
+  function fillCustomFromSeed() {
+    const seed = document.getElementById('custom-seed').value.trim();
+    const step = parseInt(document.getElementById('custom-step').value) || 1;
+    const calMode = document.getElementById('custom-calendar-cb').checked;
+    if (!seed) { showToast('Enter a seed name first'); return; }
+    const num = extractLastNum(seed);
+    document.querySelectorAll('#custom-names-list input').forEach((inp, i) => {
+      if (calMode) {
+        const cal = buildCalendarCustomName(seed, step, i);
+        if (cal !== null) { inp.value = cal; return; }
+      }
+      if (num !== null) inp.value = replaceLastNum(seed, wrapWeek(num + i * step));
+      else              inp.value = `${seed} ${String(i+1).padStart(2,'0')}`;
+    });
+    showToast('All rows filled!');
+  }
+
+  function rebuildCustomRows() {
+    const n = parseInt(document.getElementById('slider').value);
+    const container = document.getElementById('custom-names-list');
+    const existing = Array.from(container.querySelectorAll('input')).map(i => i.value);
+    container.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const item = document.createElement('div');
+      item.className = 'custom-row-item';
+      item.innerHTML = `<span class="custom-row-num">${i+1}</span><input type="text" placeholder="Row ${i+1} name" value="${existing[i] || ''}" />`;
+      container.appendChild(item);
+    }
+  }
+
+  function getNameForRow(i, availFrom) {
+    if (namingMode === 'date') return availFrom.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (namingMode === 'prefix') {
+      const p  = document.getElementById('prefix-text').value.trim() || 'Week';
+      const s  = parseInt(document.getElementById('prefix-start').value) || 1;
+      const st = parseInt(document.getElementById('prefix-step').value) || 1;
+      const calMode = document.getElementById('prefix-calendar-cb').checked;
+      if (calMode) {
+        const cal = buildCalendarName(p, s, st, i);
+        if (cal !== null) return cal;
+      }
+      return `${p} ${wrapWeek(s + i * st)}`;
+    }
+    if (namingMode === 'custom') {
+      const inputs = document.querySelectorAll('#custom-names-list input');
+      return inputs[i] ? (inputs[i].value.trim() || `Row ${i+1}`) : `Row ${i+1}`;
+    }
+  }
+
+  function fmtDateOnly(d) {
+    return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+  }
+  function fmtDateTime(d) {
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    return `${fmtDateOnly(d)} ${hh}:${mm}:${ss}`;
+  }
+  function fmtOutput(d, hasTime) { return hasTime ? fmtDateTime(d) : fmtDateOnly(d); }
+
+  function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+
+  function parseDateInput(dateStr, timeStr) {
+    if (!dateStr) return null;
+    const baseStr = timeStr ? `${dateStr}T${timeStr}:00` : `${dateStr}T00:00:00`;
+    const d = new Date(baseStr);
+    return isNaN(d) ? null : d;
+  }
+
+  function tryParseDate(s) {
+    if (!s) return { date: null, hasTime: false };
+    s = s.trim();
+    let timeStr = null, datePart = s, hasTime = false;
+    const tm = s.match(/^(.+?)[ T](\d{1,2}:\d{2}(:\d{2})?)$/);
+    if (tm) { datePart = tm[1]; timeStr = tm[2]; hasTime = true; }
+
+    let d = null;
+    let m = datePart.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+    if (m) d = new Date(`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}T00:00:00`);
+    else if ((m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/))) d = new Date(datePart + 'T00:00:00');
+    else if ((m = datePart.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) d = new Date(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}T00:00:00`);
+    else { const dt = new Date(datePart); if (!isNaN(dt)) d = dt; }
+
+    if (d && timeStr) {
+      const tp = timeStr.split(':');
+      d.setHours(parseInt(tp[0])||0, parseInt(tp[1])||0, parseInt(tp[2])||0);
+    }
+    return { date: d, hasTime };
+  }
+
+  function generate() {
+    syncMirroredFields();
+    const ftype = document.getElementById('ftype').value.trim();
+    const afT = includeTimes ? document.getElementById('avail-from-t').value : null;
+    const atT = includeTimes ? document.getElementById('avail-to-t').value   : null;
+    const vfT = includeTimes ? document.getElementById('valid-from-t').value : null;
+    const vtT = includeTimes ? document.getElementById('valid-to-t').value   : null;
+
+    const af = parseDateInput(document.getElementById('avail-from').value, afT);
+    const at = parseDateInput(document.getElementById('avail-to').value,   atT);
+    const vf = parseDateInput(document.getElementById('valid-from').value, vfT);
+    const vt = parseDateInput(document.getElementById('valid-to').value,   vtT);
+    const periods = parseInt(document.getElementById('slider').value);
+
+    if (!ftype || !af || !at || !vf || !vt) { showToast('Please fill in all date fields'); return; }
+
+    genRows = [];
+    let cAF=new Date(af), cAT=new Date(at), cVF=new Date(vf), cVT=new Date(vt);
+    for (let i=0; i<periods; i++) {
+      genRows.push({
+        flyer_type_id: ftype,
+        name: getNameForRow(i, cAF),
+        available_from: fmtOutput(cAF, includeTimes),
+        available_to:   fmtOutput(cAT, includeTimes),
+        valid_from:     fmtOutput(cVF, includeTimes),
+        valid_to:       fmtOutput(cVT, includeTimes),
+      });
+      cAF=addDays(cAF,cadenceDays); cAT=addDays(cAT,cadenceDays); cVF=addDays(cVF,cadenceDays); cVT=addDays(cVT,cadenceDays);
+    }
+    renderResultTable('gen-table-body', genRows);
+    document.getElementById('gen-results').style.display = 'block';
+    document.getElementById('row-count').textContent = genRows.length;
+    document.getElementById('gen-results').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  function renderResultTable(tbodyId, rows) {
+    document.getElementById(tbodyId).innerHTML = rows.map((r,i) => `
+      <tr>
+        <td class="row-num">${i+1}</td><td>${r.flyer_type_id}</td>
+        <td class="name-cell">${r.name}</td><td>${r.available_from}</td>
+        <td>${r.available_to}</td><td>${r.valid_from}</td><td>${r.valid_to}</td>
+      </tr>`).join('');
+  }
+
+  function parseCSVLine(line) {
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if ((c === ',' || c === '\t') && !inQ) { result.push(cur.trim()); cur = ''; }
+      else { cur += c; }
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  function parseRaw() {
+    const raw = document.getElementById('raw-input').value.trim();
+    if (!raw) { document.getElementById('col-map-section').style.display = 'none'; return; }
+    const lines = raw.split('\n').filter(l => l.trim());
+    if (lines.length < 2) { document.getElementById('col-map-section').style.display = 'none'; return; }
+
+    rawHeaders = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+    rawData = lines.slice(1).map(l => {
+      const vals = parseCSVLine(l).map(v => v.replace(/^"|"$/g,'').trim());
+      const obj = {};
+      rawHeaders.forEach((h, i) => obj[h] = vals[i] || '');
+      return obj;
+    });
+
+    const detDiv = document.getElementById('detected-cols');
+    detDiv.innerHTML = rawHeaders.map(h => `<span class="col-pill" id="pill-${h.replace(/\W/g,'_')}">${h}</span>`).join('');
+
+    const mapper = document.getElementById('col-mapper');
+    const targets = ['name','available_from','available_to','valid_from','valid_to','flyer_type_id'];
+    const labels  = ['name','available_from','available_to','valid_from','valid_to','flyer_type_id (optional)'];
+    mapper.innerHTML = targets.map((t, idx) => {
+      const opts = ['<option value="">(skip)</option>', ...rawHeaders.map(h => {
+        const auto = h.toLowerCase().replace(/[\s_-]/g,'');
+        const tgt  = t.replace(/_/g,'');
+        const sel  = auto.includes(tgt) || tgt.includes(auto) ? ' selected' : '';
+        return `<option value="${h}"${sel}>${h}</option>`;
+      })].join('');
+      return `<div class="field"><label>→ ${labels[idx]}</label><select id="map-${t}" onchange="highlightMapped()">${opts}</select></div>`;
+    }).join('');
+
+    document.getElementById('col-map-section').style.display = 'block';
+    highlightMapped();
+  }
+
+  function highlightMapped() {
+    document.querySelectorAll('.col-pill').forEach(p => p.classList.remove('mapped'));
+    ['name','available_from','available_to','valid_from','valid_to','flyer_type_id'].forEach(t => {
+      const sel = document.getElementById('map-' + t);
+      if (sel && sel.value) {
+        const pill = document.getElementById('pill-' + sel.value.replace(/\W/g,'_'));
+        if (pill) pill.classList.add('mapped');
+      }
+    });
+  }
+
+  function cleanAndRender() {
+    if (!rawData.length) { showToast('No data to clean'); return; }
+    const fallbackFtype = document.getElementById('clean-ftype').value.trim() || '1000';
+    const getMap = t => { const el = document.getElementById('map-'+t); return el ? el.value : ''; };
+
+    cleanRows = rawData.map(row => {
+      const ftype = getMap('flyer_type_id') ? (row[getMap('flyer_type_id')] || fallbackFtype) : fallbackFtype;
+      const name  = getMap('name') ? (row[getMap('name')] || '') : '';
+
+      const parseFmt = key => {
+        const col = getMap(key);
+        if (!col || !row[col]) return '';
+        const { date, hasTime } = tryParseDate(row[col]);
+        return date ? fmtOutput(date, hasTime) : row[col];
+      };
+
+      return {
+        flyer_type_id: ftype,
+        name: name,
+        available_from: parseFmt('available_from'),
+        available_to:   parseFmt('available_to'),
+        valid_from:     parseFmt('valid_from'),
+        valid_to:       parseFmt('valid_to'),
+      };
+    }).filter(r => r.available_from || r.name);
+
+    renderResultTable('clean-table-body', cleanRows);
+    document.getElementById('clean-results').style.display = 'block';
+    document.getElementById('clean-row-count').textContent = cleanRows.length;
+    document.getElementById('clean-results').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  function toCSVString(rows) {
+    return [STD_COLS.join(','), ...rows.map(r => STD_COLS.map(c => `"${r[c] || ''}"`).join(','))].join('\n');
+  }
+  function downloadCSV(src) {
+    const rows = src === 'gen' ? genRows : cleanRows;
+    const blob = new Blob([toCSVString(rows)], { type:'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'merchant_audit_schedule.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url); showToast('CSV downloaded!');
+  }
+  function copyCSV(src) {
+    const rows = src === 'gen' ? genRows : cleanRows;
+    navigator.clipboard.writeText(toCSVString(rows)).then(() => showToast('Copied to clipboard!'));
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  rebuildCustomRows();
+</script>
+</body>
+</html>
