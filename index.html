@@ -4,240 +4,486 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Merchant Schedule Generator</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
+/* ============================================================
+   Merchant Schedule Generator — visual system
+   Type:  SF Pro (system) with Inter fallback
+   Color: Apple neutral greys + system accent blue
+   Form:  soft surfaces, 18px radii, layered shadows, no hard borders
+   ============================================================ */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #f3f9fb;
-    --surface: #ffffff;
-    --surface2: #e8f4f7;
-    --border: #c9e3ea;
-    --border-strong: #9ec9d4;
-    --primary: #20bdd6;
-    --primary-hover: #18a3bc;
-    --primary-soft: #c5ebf2;
-    --primary-tint: #e8f7fa;
-    --text: #0e3640;
-    --text2: #486870;
-    --text3: #8aa5ac;
-    --radius: 10px;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Inter', sans-serif;
-    --shadow-sm: 0 1px 2px rgba(14, 54, 64, 0.04);
-    --shadow-md: 0 4px 12px rgba(14, 54, 64, 0.08);
+
+  :root{
+    --bg:#F5F5F7;
+    --surface:#FFFFFF;
+    --surface2:#F5F5F7;
+    --sunken:#F5F5F7;
+    --border:rgba(0,0,0,.08);
+    --border-strong:rgba(0,0,0,.14);
+    --text:#1D1D1F;
+    --text2:#6E6E73;
+    --text3:#86868B;
+    --primary:#0071E3;
+    --primary-hover:#0077ED;
+    --primary-soft:#EAF3FE;
+    --primary-tint:#EAF3FE;
+    --amber:#FF9F0A;
+    --red:#FF3B30;
+    --green:#34C759;
+    --sans:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
+    --radius:18px;
+    --r-md:12px;
+    --r-sm:9px;
+    --r-pill:980px;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.04);
+    --shadow-md:0 1px 2px rgba(0,0,0,.04), 0 8px 24px -8px rgba(0,0,0,.10);
+    --ease:cubic-bezier(.32,.72,0,1);
   }
-  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; padding: 40px 20px; }
-  .app { max-width: 900px; margin: 0 auto; }
-  .header { margin-bottom: 32px; }
-  .badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--primary); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; font-weight: 500; }
-  .badge::before { content: ''; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; }
-  h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
-  .subtitle { font-size: 14px; color: var(--text2); margin-top: 4px; }
 
-  .tab-nav { display: flex; gap: 4px; padding: 4px; border-radius: var(--radius); margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-  .tab-btn { flex: 1; height: 42px; border: none; background: transparent; font-family: var(--sans); font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.15s; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 7px; }
-  .tab-btn:hover { background: var(--surface2); }
-  .tab-btn.active { background: var(--primary); color: #fff; }
-  .tab-btn svg { width: 15px; height: 15px; }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
-  .card-title { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
-  .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .card-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-  .card-title-row .card-title { margin-bottom: 0; }
-
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
-  .form-grid.four { grid-template-columns: 1fr 1fr 1fr 1fr; }
-  @media (max-width: 600px) { .form-grid, .form-grid.three, .form-grid.four { grid-template-columns: 1fr 1fr; } }
-
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-family: var(--mono); font-size: 11px; color: var(--text2); letter-spacing: 0.04em; font-weight: 500; }
-  .field input, .field select, .field textarea {
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 0 12px;
-    font-family: var(--sans);
-    font-size: 14px;
-    color: var(--text);
-    background: var(--surface);
-    transition: border-color 0.15s, box-shadow 0.15s;
-    appearance: none;
-    width: 100%;
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:15px; line-height:1.47; letter-spacing:-.01em;
+    -webkit-font-smoothing:antialiased; padding-bottom:60px;
   }
-  .field input, .field select { height: 40px; }
-  .field textarea { padding: 10px 12px; resize: vertical; line-height: 1.5; }
-  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(32, 189, 214, 0.18); }
-  .field input[type="date"], .field input[type="time"] { font-family: var(--mono); font-size: 13px; }
-  .field input[type="number"] { font-family: var(--mono); }
-  .field input:disabled { opacity: 0.5; cursor: not-allowed; background: var(--surface2); }
 
-  .datetime-combo { display: grid; grid-template-columns: 1fr 0.7fr; gap: 6px; }
-
-  /* Field label with toggle switch */
-  .field-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
-  .toggle-inline { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
-  .toggle-inline input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    position: relative;
-    width: 30px; height: 16px;
-    background: #cfd8de;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    margin: 0;
-    flex-shrink: 0;
-    box-shadow: inset 0 1px 2px rgba(14, 54, 64, 0.08);
+  /* ---------- shell + header ---------- */
+  .app{ max-width:1080px; margin:0 auto; padding:34px 26px 0; }
+  .header{ margin-bottom:26px; }
+  .badge{
+    display:inline-block; background:var(--sunken); color:var(--text3);
+    font-size:10.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+    padding:4px 11px; border-radius:var(--r-pill); margin-bottom:14px;
   }
-  .toggle-inline input[type="checkbox"]::after {
-    content: '';
-    position: absolute;
-    top: 1.5px; left: 1.5px;
-    width: 13px; height: 13px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(14, 54, 64, 0.25);
-    transition: left 0.2s ease;
+  .badge::before{ content:none; }
+  h1{
+    font-size:34px; font-weight:600; letter-spacing:-.03em; line-height:1.1; color:var(--text);
   }
-  .toggle-inline input[type="checkbox"]:checked {
-    background: var(--primary);
+  .subtitle{ font-size:16px; color:var(--text2); margin-top:7px; letter-spacing:-.01em; }
+
+  /* ---------- segmented mode switcher ---------- */
+  .tab-nav{
+    display:inline-flex; gap:2px; padding:2px; margin-bottom:22px;
+    background:rgba(120,120,128,.12); border-radius:11px;
   }
-  .toggle-inline input[type="checkbox"]:checked::after {
-    left: 15.5px;
+  .tab-btn{
+    display:inline-flex; align-items:center; gap:7px;
+    border:none; background:none; cursor:pointer;
+    font-family:var(--sans); font-size:13.5px; font-weight:500; color:var(--text2);
+    padding:8px 18px; border-radius:9px; white-space:nowrap;
+    transition:background .2s var(--ease), color .2s var(--ease);
   }
-  .toggle-inline span { font-family: var(--sans); font-size: 11px; color: var(--text2); font-weight: 400; }
-  .toggle-inline span code { font-family: var(--mono); font-size: 10px; background: var(--surface2); padding: 1px 5px; border-radius: 3px; color: var(--primary); }
-
-  /* Naming toggle */
-  .naming-toggle { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; height: 40px; margin-bottom: 16px; background: var(--surface); }
-  .naming-toggle button { border: none; border-right: 1px solid var(--border); background: transparent; font-family: var(--sans); font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.15s; font-weight: 500; }
-  .naming-toggle button:last-child { border-right: none; }
-  .naming-toggle button:hover:not(.active) { background: var(--surface2); }
-  .naming-toggle button.active { background: var(--primary); color: #fff; }
-
-  .naming-panel { display: none; background: var(--primary-tint); border: 1px solid var(--primary-soft); border-radius: 8px; padding: 16px; margin-bottom: 4px; }
-  .naming-panel.visible { display: block; }
-  .naming-hint { font-size: 12px; color: var(--text2); font-family: var(--mono); }
-  .naming-hint strong { color: var(--primary); font-weight: 600; }
-  .preview-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--primary-soft); border-radius: 20px; padding: 5px 12px; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--text2); flex-wrap: wrap; }
-  .preview-pill span { color: var(--primary); font-weight: 500; }
-
-  .custom-seed-row { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--primary-soft); flex-wrap: wrap; }
-  .custom-seed-row .field { flex: 1; min-width: 160px; }
-  .fill-btn { height: 40px; padding: 0 16px; border: 1px solid var(--primary); border-radius: 7px; background: var(--surface); color: var(--primary); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
-  .fill-btn:hover { background: var(--primary); color: #fff; }
-  .custom-scroll { max-height: 240px; overflow-y: auto; }
-  .custom-row-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--primary-soft); }
-  .custom-row-item:last-child { border-bottom: none; }
-  .custom-row-num { font-family: var(--mono); font-size: 11px; color: var(--text3); min-width: 24px; font-weight: 500; }
-  .custom-row-item input { flex: 1; height: 34px; border: 1px solid var(--border); border-radius: 7px; padding: 0 10px; font-family: var(--sans); font-size: 13px; color: var(--text); background: var(--surface); }
-  .custom-row-item input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(32, 189, 214, 0.18); }
-
-  .cadence-toggle { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; height: 40px; background: var(--surface); }
-  .cadence-toggle button { border: none; background: transparent; font-family: var(--sans); font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.15s; font-weight: 500; }
-  .cadence-toggle button:first-child { border-right: 1px solid var(--border); }
-  .cadence-toggle button:hover:not(.active) { background: var(--surface2); }
-  .cadence-toggle button.active { background: var(--primary); color: #fff; }
-
-  /* Times toggle header */
-  .check-header { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; padding: 5px 12px; border-radius: 7px; background: var(--surface2); transition: background 0.15s; }
-  .check-header:hover { background: var(--primary-soft); }
-  .check-header input[type="checkbox"] {
-    appearance: none; -webkit-appearance: none;
-    position: relative;
-    width: 34px; height: 18px;
-    background: #cfd8de;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    margin: 0; flex-shrink: 0;
-    box-shadow: inset 0 1px 2px rgba(14, 54, 64, 0.08);
+  .tab-btn:hover{ color:var(--text); }
+  .tab-btn.active{
+    background:var(--surface); color:var(--text); font-weight:600;
+    box-shadow:0 1px 3px rgba(0,0,0,.10);
   }
-  .check-header input[type="checkbox"]::after {
-    content: '';
-    position: absolute;
-    top: 1.5px; left: 1.5px;
-    width: 15px; height: 15px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(14, 54, 64, 0.25);
-    transition: left 0.2s ease;
+  .tab-btn svg{ width:14px; height:14px; }
+
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; animation:panelIn .3s var(--ease); }
+  @keyframes panelIn{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+
+  /* ---------- cards ---------- */
+  .card{
+    background:var(--surface); border-radius:var(--radius); padding:22px 24px;
+    box-shadow:var(--shadow-md); margin-bottom:18px;
   }
-  .check-header input[type="checkbox"]:checked { background: var(--primary); }
-  .check-header input[type="checkbox"]:checked::after { left: 17.5px; }
-  .check-header span { font-family: var(--mono); font-size: 11px; color: var(--text2); letter-spacing: 0.04em; font-weight: 500; }
-
-  .slider-row { display: flex; align-items: center; gap: 14px; }
-  .slider-row input[type=range] {
-    flex: 1; -webkit-appearance: none;
-    height: 4px; border-radius: 2px;
-    background: var(--border); outline: none;
+  .card-title{
+    font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
+    color:var(--text3); margin-bottom:16px;
   }
-  .slider-row input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    background: var(--primary);
-    cursor: pointer;
-    border: 3px solid var(--surface);
-    box-shadow: 0 0 0 1px var(--primary);
+  .card-title::after{ content:none; }
+  .card-title-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .card-title-row .card-title{ margin-bottom:0; }
+
+  /* ---------- form grid ---------- */
+  .form-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  .form-grid.three{ grid-template-columns:repeat(3,1fr); }
+  .form-grid.four{ grid-template-columns:repeat(4,1fr); }
+  @media (max-width:640px){
+    .form-grid, .form-grid.three, .form-grid.four{ grid-template-columns:1fr; }
+    .app{ padding:26px 16px 0; }
+    .card{ padding:18px 16px; }
+    h1{ font-size:27px; }
   }
-  .slider-val { font-family: var(--mono); font-size: 13px; color: var(--primary); min-width: 70px; text-align: right; font-weight: 500; }
 
-  .generate-btn { width: 100%; height: 48px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius); font-family: var(--sans); font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.15s; margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-md); }
-  .generate-btn:hover { background: var(--primary-hover); }
-  .generate-btn:active { transform: scale(0.99); }
-  .generate-btn svg { width: 18px; height: 18px; }
+  .field{ display:flex; flex-direction:column; gap:7px; min-width:0; }
+  .field label{
+    font-size:13px; font-weight:600; color:var(--text); letter-spacing:-.005em;
+  }
+  .field input, .field select, .field textarea{
+    width:100%; height:40px;
+    font-family:var(--sans); font-size:14.5px; color:var(--text); letter-spacing:-.01em;
+    background:var(--sunken); border:1px solid transparent; border-radius:var(--r-md);
+    padding:0 13px;
+    transition:background .15s, border-color .15s, box-shadow .15s;
+  }
+  .field input::placeholder, .field textarea::placeholder{ color:var(--text3); }
+  .field textarea{ height:auto; min-height:120px; padding:11px 13px; line-height:1.55; resize:vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none; background:var(--surface); border-color:var(--primary);
+    box-shadow:0 0 0 4px rgba(0,113,227,.16);
+  }
+  .field select{
+    appearance:none; -webkit-appearance:none; cursor:pointer; padding-right:34px;
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.7L6 7.8l3-3.1' fill='none' stroke='%236E6E73' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center; background-size:12px;
+  }
+  .field input[type="date"], .field input[type="time"]{
+    font-variant-numeric:tabular-nums; min-width:0;
+  }
+  .field input[type="number"]{ font-variant-numeric:tabular-nums; }
+  .field input:disabled{
+    color:var(--text3); background:rgba(120,120,128,.08); cursor:not-allowed;
+  }
+  .datetime-combo{ display:flex; gap:8px; min-width:0; }
+  .datetime-combo input[type="date"]{ flex:1 1 auto; min-width:0; }
+  .time-input{ flex:0 0 108px; }
 
-  .results-section { display: none; }
-  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-  .results-meta { font-family: var(--mono); font-size: 12px; color: var(--text2); }
-  .results-meta span { color: var(--primary); font-weight: 600; }
-  .action-btns { display: flex; gap: 8px; }
-  .action-btn { height: 36px; padding: 0 16px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); font-family: var(--sans); font-size: 13px; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.12s; font-weight: 500; }
-  .action-btn:hover { background: var(--surface2); border-color: var(--border-strong); }
-  .action-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .action-btn.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
-  .action-btn svg { width: 15px; height: 15px; }
+  /* ---------- inline toggle (iOS switch) ---------- */
+  .field-label-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .toggle-inline{ display:inline-flex; align-items:center; gap:7px; cursor:pointer; user-select:none; }
+  .toggle-inline input[type="checkbox"]{
+    appearance:none; -webkit-appearance:none; position:relative; flex:none;
+    width:38px; height:23px; border-radius:var(--r-pill);
+    background:rgba(120,120,128,.20); cursor:pointer; margin:0;
+    transition:background .3s var(--ease);
+  }
+  .toggle-inline input[type="checkbox"]::after{
+    content:''; position:absolute; top:2px; left:2px; width:19px; height:19px;
+    border-radius:50%; background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.16), 0 1px 1px rgba(0,0,0,.12);
+    transition:transform .3s var(--ease);
+  }
+  .toggle-inline input[type="checkbox"]:checked{ background:var(--primary); }
+  .toggle-inline input[type="checkbox"]:checked::after{ transform:translateX(15px); }
+  .toggle-inline input[type="checkbox"]:focus-visible{ box-shadow:0 0 0 4px rgba(0,113,227,.22); }
+  .toggle-inline span{ font-size:12.5px; color:var(--text2); letter-spacing:-.005em; }
+  .toggle-inline span code{
+    font-family:var(--mono); font-size:11.5px; background:var(--sunken);
+    padding:2px 6px; border-radius:6px; color:var(--text2);
+  }
 
-  .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); box-shadow: var(--shadow-sm); }
-  .table-scroll { overflow-x: auto; max-height: 380px; overflow-y: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead { position: sticky; top: 0; z-index: 1; }
-  thead th { background: var(--primary); color: rgba(255,255,255,0.92); font-family: var(--mono); font-size: 11px; font-weight: 500; text-align: left; padding: 11px 14px; letter-spacing: 0.06em; white-space: nowrap; }
-  tbody tr { border-bottom: 1px solid var(--border); }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: var(--primary-tint); }
-  tbody td { padding: 9px 14px; color: var(--text); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
-  tbody td.name-cell { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--primary); }
-  .row-num { color: var(--text3); font-size: 11px; }
+  /* ---------- naming convention switcher ---------- */
+  .naming-toggle{
+    display:inline-flex; gap:2px; padding:2px; margin-bottom:16px;
+    background:rgba(120,120,128,.12); border-radius:10px;
+  }
+  .naming-toggle button{
+    border:none; background:none; cursor:pointer;
+    font-family:var(--sans); font-size:13px; font-weight:500; color:var(--text2);
+    padding:7px 16px; border-radius:8px; white-space:nowrap;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .naming-toggle button:last-child{ border:none; }
+  .naming-toggle button:hover:not(.active){ color:var(--text); }
+  .naming-toggle button.active{
+    background:var(--surface); color:var(--text); font-weight:600;
+    box-shadow:0 1px 3px rgba(0,0,0,.10);
+  }
 
-  .raw-area { width: 100%; min-height: 180px; font-family: var(--mono); font-size: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: var(--text); resize: vertical; line-height: 1.6; }
-  .raw-area:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(32, 189, 214, 0.18); }
-  .col-mapper { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 16px; }
-  @media (max-width: 600px) { .col-mapper { grid-template-columns: 1fr; } }
-  .col-mapper .field select { font-family: var(--mono); font-size: 12px; }
-  .info-box { background: var(--primary-tint); border: 1px solid var(--primary-soft); border-radius: 8px; padding: 14px 16px; font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 16px; }
-  .detected-cols { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-  .col-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-family: var(--mono); font-size: 11px; color: var(--text2); transition: all 0.15s; }
-  .col-pill.mapped { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
-  .clean-btn { height: 48px; width: 100%; background: var(--primary); color: #fff; border: none; border-radius: var(--radius); font-family: var(--sans); font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s; box-shadow: var(--shadow-md); }
-  .clean-btn:hover { background: var(--primary-hover); }
-  .clean-btn svg { width: 18px; height: 18px; }
+  .naming-panel{
+    display:none; background:var(--sunken); border-radius:var(--r-md);
+    padding:16px; margin-bottom:6px;
+  }
+  .naming-panel.visible{ display:block; animation:panelIn .26s var(--ease); }
+  .naming-hint{
+    font-size:12.5px; color:var(--text2); margin-top:10px; line-height:1.5;
+  }
+  .naming-hint strong{ color:var(--text); font-weight:600; }
+  .preview-pill{
+    display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:var(--primary-soft); color:var(--primary);
+    border-radius:var(--r-pill); padding:7px 14px; margin-top:12px;
+    font-size:12.5px; font-weight:500;
+  }
+  .preview-pill span{
+    font-family:var(--mono); font-size:12px; letter-spacing:0;
+  }
 
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; padding: 12px 20px; border-radius: 30px; font-size: 13px; font-weight: 500; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; white-space: nowrap; box-shadow: 0 8px 24px rgba(14, 54, 64, 0.25); }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+  .custom-seed-row{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+  .custom-seed-row .field{ flex:0 1 240px; }
+  .custom-seed-row{ align-items:flex-end; }
+  .fill-btn{
+    border:none; background:var(--sunken); color:var(--text); cursor:pointer;
+    font-family:var(--sans); font-size:13px; font-weight:500;
+    height:40px; padding:0 16px; border-radius:var(--r-pill); white-space:nowrap;
+    transition:background .18s var(--ease), transform .18s var(--ease);
+  }
+  .fill-btn:hover{ background:#EBEBED; }
+  .fill-btn:active{ transform:scale(.97); }
+
+  .custom-scroll{
+    max-height:260px; overflow-y:auto; margin-top:14px;
+    border-radius:var(--r-md); background:var(--sunken); padding:6px;
+  }
+  .custom-row-item{
+    display:flex; align-items:center; gap:10px; padding:5px 6px;
+    border-bottom:1px solid var(--border);
+  }
+  .custom-row-item:last-child{ border-bottom:none; }
+  .custom-row-num{
+    flex:0 0 26px; text-align:right; font-family:var(--mono);
+    font-size:12px; color:var(--text3);
+  }
+  .custom-row-item input{
+    flex:1; height:34px; border:1px solid transparent; border-radius:var(--r-sm);
+    background:var(--surface); padding:0 11px; font-family:var(--sans); font-size:13.5px; color:var(--text);
+  }
+  .custom-row-item input:focus{
+    outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,113,227,.14);
+  }
+
+  /* ---------- cadence switcher ---------- */
+  .cadence-toggle{
+    display:inline-flex; align-self:flex-start; gap:2px; padding:2px;
+    background:rgba(120,120,128,.12); border-radius:10px;
+  }
+  .cadence-toggle button{
+    border:none; background:none; cursor:pointer;
+    font-family:var(--sans); font-size:13px; font-weight:500; color:var(--text2);
+    padding:7px 16px; border-radius:8px;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .cadence-toggle button:first-child{ border:none; }
+  .cadence-toggle button:hover:not(.active){ color:var(--text); }
+  .cadence-toggle button.active{
+    background:var(--surface); color:var(--text); font-weight:600;
+    box-shadow:0 1px 3px rgba(0,0,0,.10);
+  }
+
+  /* ---------- times toggle ---------- */
+  .check-header{
+    display:inline-flex; align-items:center; gap:10px; cursor:pointer; user-select:none;
+    padding:6px 2px; border-radius:var(--r-sm);
+  }
+  .check-header:hover span{ color:var(--text); }
+  .check-header input[type="checkbox"]{
+    appearance:none; -webkit-appearance:none; position:relative; flex:none;
+    width:42px; height:26px; border-radius:var(--r-pill);
+    background:rgba(120,120,128,.20); cursor:pointer; margin:0;
+    transition:background .3s var(--ease);
+  }
+  .check-header input[type="checkbox"]::after{
+    content:''; position:absolute; top:2px; left:2px; width:22px; height:22px;
+    border-radius:50%; background:#fff;
+    box-shadow:0 2px 7px rgba(0,0,0,.16), 0 1px 1px rgba(0,0,0,.12);
+    transition:transform .3s var(--ease);
+  }
+  .check-header input[type="checkbox"]:checked{ background:var(--primary); }
+  .check-header input[type="checkbox"]:checked::after{ transform:translateX(16px); }
+  .check-header span{
+    font-size:13.5px; font-weight:500; color:var(--text2); transition:color .15s;
+  }
+
+  /* ---------- period slider ---------- */
+  .slider-row{ display:flex; align-items:center; gap:16px; }
+  .slider-row input[type=range]{
+    flex:1; -webkit-appearance:none; appearance:none; height:5px; border-radius:var(--r-pill);
+    background:rgba(120,120,128,.20); outline:none; cursor:pointer;
+  }
+  .slider-row input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:24px; height:24px; border-radius:50%;
+    background:#fff; cursor:pointer;
+    box-shadow:0 1px 4px rgba(0,0,0,.18), 0 3px 10px rgba(0,0,0,.12);
+    border:.5px solid rgba(0,0,0,.04);
+    transition:transform .15s var(--ease);
+  }
+  .slider-row input[type=range]::-webkit-slider-thumb:active{ transform:scale(1.08); }
+  .slider-row input[type=range]::-moz-range-thumb{
+    width:24px; height:24px; border:none; border-radius:50%; background:#fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.18), 0 3px 10px rgba(0,0,0,.12); cursor:pointer;
+  }
+  .slider-val{
+    font-size:14px; font-weight:600; color:var(--text); white-space:nowrap;
+    font-variant-numeric:tabular-nums; min-width:84px; text-align:right;
+  }
+
+  /* ---------- primary actions ---------- */
+  .generate-btn, .clean-btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; border:none; cursor:pointer;
+    background:var(--primary); color:#fff;
+    font-family:var(--sans); font-size:15px; font-weight:600; letter-spacing:-.015em;
+    padding:14px 24px; border-radius:var(--r-pill);
+    transition:background .18s var(--ease), transform .18s var(--ease);
+  }
+  .generate-btn:hover, .clean-btn:hover{ background:var(--primary-hover); }
+  .generate-btn:active, .clean-btn:active{ transform:scale(.99); }
+  .generate-btn svg, .clean-btn svg{ width:16px; height:16px; }
+
+  /* ---------- results ---------- */
+  .results-section{ display:none; margin-top:18px; }
+  .results-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:14px; flex-wrap:wrap; margin-bottom:14px;
+  }
+  .results-meta{ font-size:13px; color:var(--text2); }
+  .results-meta span{ color:var(--text); font-weight:600; }
+  .action-btns{ display:flex; gap:8px; flex-wrap:wrap; }
+  .action-btn{
+    display:inline-flex; align-items:center; gap:7px;
+    border:none; background:var(--sunken); color:var(--text); cursor:pointer;
+    font-family:var(--sans); font-size:13px; font-weight:500;
+    padding:8px 15px; border-radius:var(--r-pill);
+    transition:background .18s var(--ease), transform .18s var(--ease);
+  }
+  .action-btn:hover{ background:#EBEBED; }
+  .action-btn:active{ transform:scale(.97); }
+  .action-btn.primary{ background:var(--primary); color:#fff; }
+  .action-btn.primary:hover{ background:var(--primary-hover); }
+  .action-btn svg{ width:14px; height:14px; }
+
+  .table-wrap{
+    background:var(--surface); border-radius:var(--radius);
+    box-shadow:var(--shadow-md); overflow:hidden;
+  }
+  .table-scroll{ overflow:auto; max-height:460px; }
+  table{ width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px; }
+  thead{ position:sticky; top:0; z-index:2; }
+  thead th{
+    background:rgba(255,255,255,.86);
+    backdrop-filter:saturate(180%) blur(12px); -webkit-backdrop-filter:saturate(180%) blur(12px);
+    text-align:left; padding:12px 14px; white-space:nowrap;
+    font-size:11px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; color:var(--text3);
+    border-bottom:1px solid var(--border);
+  }
+  tbody tr{ transition:background .14s; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:#FAFAFB; }
+  tbody td{
+    padding:11px 14px; border-bottom:1px solid rgba(0,0,0,.045);
+    white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--text);
+  }
+  tbody td.name-cell{ font-weight:600; letter-spacing:-.01em; }
+  .row-num{ color:var(--text3); font-family:var(--mono); font-size:12px; }
+
+  /* ---------- clean-mode input ---------- */
+  .raw-area{
+    width:100%; min-height:180px; resize:vertical;
+    font-family:var(--mono); font-size:12.5px; line-height:1.6; color:var(--text);
+    background:var(--sunken); border:1px solid transparent; border-radius:var(--r-md);
+    padding:13px; transition:background .15s, border-color .15s, box-shadow .15s;
+  }
+  .raw-area::placeholder{ color:var(--text3); }
+  .raw-area:focus{
+    outline:none; background:var(--surface); border-color:var(--primary);
+    box-shadow:0 0 0 4px rgba(0,113,227,.16);
+  }
+
+  .col-mapper{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:640px){ .col-mapper{ grid-template-columns:1fr; } }
+  .col-mapper .field select{ width:100%; }
+
+  .info-box{
+    background:var(--sunken); border-radius:var(--r-md); padding:13px 15px;
+    font-size:12.5px; line-height:1.55; color:var(--text2); margin-bottom:16px;
+  }
+  .detected-cols{ display:flex; gap:7px; flex-wrap:wrap; }
+  .col-pill{
+    background:var(--sunken); color:var(--text2);
+    border-radius:var(--r-pill); padding:5px 12px;
+    font-family:var(--mono); font-size:11.5px;
+    transition:background .18s, color .18s;
+  }
+  .col-pill.mapped{ background:var(--primary-soft); color:var(--primary); font-weight:500; }
+
+  /* ---------- WIP notice ---------- */
+  .wip{
+    display:flex; align-items:flex-start; gap:11px;
+    background:#FFF8E6; border-radius:var(--r-md); padding:13px 15px; margin-bottom:18px;
+    font-size:12.5px; line-height:1.5; color:#7A5B12;
+  }
+  .wip svg{ width:15px; height:15px; flex:none; margin-top:1px; color:var(--amber); }
+  .wip b{ color:#5E4409; font-weight:600; }
+
+  /* ---------- clean tab: file intake ---------- */
+  .dropzone{
+    border:1.5px dashed rgba(0,0,0,.13); border-radius:var(--r-md);
+    padding:24px 18px; text-align:center; cursor:pointer; background:var(--surface);
+    transition:border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease);
+  }
+  .dropzone:hover{ border-color:rgba(0,0,0,.22); background:#FCFCFD; }
+  .dropzone.over{ border-color:var(--primary); background:var(--primary-soft); transform:scale(1.005); }
+  .dropzone b{ display:block; font-size:13.5px; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .dropzone span{ display:block; font-size:12.5px; color:var(--text3); }
+  .filemeta{ margin-top:12px; font-size:13px; color:var(--text2); }
+  .filemeta .fpill{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--sunken); border-radius:var(--r-pill); padding:6px 14px; font-size:12.5px;
+  }
+  .filemeta .fpill b{ font-weight:600; color:var(--text); }
+  .paste-alt{ margin-top:14px; }
+  .paste-alt summary{
+    font-size:12.5px; color:var(--primary); cursor:pointer; list-style:none;
+    padding:4px 0; width:max-content;
+  }
+  .paste-alt summary::-webkit-details-marker{ display:none; }
+  .paste-alt summary:hover{ text-decoration:underline; text-underline-offset:2px; }
+  .paste-alt[open] summary{ margin-bottom:10px; }
+  .lbl-hint{ font-weight:400; color:var(--text3); font-size:12px; }
+
+  .date-mode{
+    display:inline-flex; align-self:flex-start; gap:2px; padding:2px;
+    background:rgba(120,120,128,.12); border-radius:10px;
+  }
+  .date-mode button{
+    border:none; background:none; cursor:pointer; font-family:var(--sans);
+    font-size:13px; font-weight:500; color:var(--text2); padding:7px 14px; border-radius:8px;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .date-mode button:hover:not(.active){ color:var(--text); }
+  .date-mode button.active{
+    background:var(--surface); color:var(--text); font-weight:600;
+    box-shadow:0 1px 3px rgba(0,0,0,.10);
+  }
+
+  /* mapping cards show a live sample from their file */
+  .map-sample{
+    font-family:var(--mono); font-size:11.5px; color:var(--text3);
+    margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .map-sample.ok{ color:#248A3D; }
+  .map-sample.warn{ color:#B25F00; }
+
+  /* row-parity readout */
+  .results-meta .parity-ok{ color:#248A3D; font-weight:600; }
+  .results-meta .parity-warn{ color:#B25F00; font-weight:600; }
+  td.cell-missing, .cell-missing{ color:#B25F00; background:#FFFBF2; font-style:italic; font-weight:400; }
+  td.cell-raw{ color:#B25F00; background:#FFFBF2; }
+  .srccol{ color:var(--text3); font-family:var(--mono); font-size:12px; }
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-14px);
+    background:rgba(29,29,31,.92);
+    backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+    color:#fff; padding:12px 20px; border-radius:var(--r-pill);
+    font-size:13.5px; font-weight:500; letter-spacing:-.01em;
+    box-shadow:0 8px 30px rgba(0,0,0,.24);
+    opacity:0; pointer-events:none; z-index:100;
+    transition:opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---------- a11y + motion ---------- */
+  :focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+  button:focus-visible{ outline-offset:3px; }
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="app">
   <div class="header">
     <span class="badge">Merchant Ops</span>
-    <h1>Schedule Generator</h1>
-    <p class="subtitle">Generate and clean merchant audit schedules</p>
+    <h1>Merchant Schedule Generator</h1>
+    <p class="subtitle">Generate merchant audit schedules, or convert a retailer’s own format into ours</p>
   </div>
 
   <div class="tab-nav">
@@ -246,8 +492,8 @@
       Generate Schedule
     </button>
     <button class="tab-btn" onclick="switchTab('clean', this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-      Clean Raw Schedule
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 8 16 13"/><path d="M21 8H8a5 5 0 0 0-5 5v1"/><polyline points="8 21 3 16 8 11"/><path d="M3 16h13a5 5 0 0 0 5-5v-1"/></svg>
+      Custom Schedule Format Converter
     </button>
   </div>
 
@@ -419,38 +665,71 @@
 
   <!-- TAB 2: CLEAN RAW -->
   <div class="tab-panel" id="tab-clean">
+    <div class="wip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div><b>Work in progress — treat this as a test.</b> Retailer templates vary a lot, so results can differ
+      between files and may not be consistent. Always check the output against their original file before using it,
+      especially the dates.</div>
+    </div>
+
     <div class="card">
-      <div class="card-title">Paste Raw Schedule</div>
-      <div class="info-box">
-        Paste any CSV or tab-separated schedule — extra columns and non-standard names are fine. Map your columns below and the app will output a clean standard file. Times are preserved if present in source data.
+      <div class="card-title">1 · Retailer file</div>
+
+      <div class="dropzone" id="clean-drop">
+        <b>Drop the retailer's .xlsx or .csv here, or click to browse</b>
+        <span>Their own template is fine — extra columns, title rows above the header, any column names.</span>
       </div>
-      <textarea class="raw-area" id="raw-input" placeholder="Paste your raw CSV or tab-delimited data here, including the header row..." oninput="parseRaw()"></textarea>
+      <input type="file" id="clean-file" accept=".xlsx,.xls,.csv" hidden />
+      <div class="filemeta" id="clean-filemeta"></div>
 
-      <div id="col-map-section" style="display:none;">
-        <div class="card-title" style="margin-top:20px;">Detected Columns</div>
-        <div class="detected-cols" id="detected-cols"></div>
+      <details class="paste-alt" id="paste-alt">
+        <summary>or paste the rows instead</summary>
+        <textarea class="raw-area" id="raw-input" placeholder="Paste CSV or tab-delimited rows, including the header row..." oninput="parseRaw()"></textarea>
+      </details>
 
-        <div class="card-title" style="margin-top:20px;">Map to Standard Columns</div>
-        <div class="col-mapper" id="col-mapper"></div>
-
-        <div class="card-title" style="margin-top:20px;">flyer_type_id fallback</div>
-        <div class="form-grid" style="margin-bottom:4px;">
-          <div class="field">
-            <label>flyer_type_id (if not in source)</label>
-            <input type="text" id="clean-ftype" placeholder="e.g. 1000" value="1000" />
-          </div>
+      <div id="sheet-row" class="form-grid" style="display:none; margin-top:16px;">
+        <div class="field">
+          <label>Worksheet</label>
+          <select id="sheet-pick" onchange="onSheetPick()"></select>
         </div>
-
-        <button class="clean-btn" onclick="cleanAndRender()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          Clean & Generate Standard CSV
-        </button>
+        <div class="field">
+          <label>Header row <span class="lbl-hint">the row with the column names</span></label>
+          <select id="header-pick" onchange="onHeaderPick()"></select>
+        </div>
       </div>
+    </div>
+
+    <div class="card" id="col-map-section" style="display:none;">
+      <div class="card-title">2 · Map their columns to ours</div>
+      <div class="detected-cols" id="detected-cols"></div>
+      <div class="col-mapper" id="col-mapper" style="margin-top:16px;"></div>
+
+      <div class="card-title" style="margin-top:24px;">3 · Date format &amp; fallback</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>How to read ambiguous dates <span class="lbl-hint">e.g. 10/05/2026</span></label>
+          <div class="date-mode" id="date-mode">
+            <button class="active" data-dm="auto" onclick="setDateMode('auto')">Auto</button>
+            <button data-dm="mdy" onclick="setDateMode('mdy')">Month first</button>
+            <button data-dm="dmy" onclick="setDateMode('dmy')">Day first</button>
+          </div>
+          <div class="naming-hint" id="date-mode-hint"></div>
+        </div>
+        <div class="field">
+          <label>flyer_type_id <span class="lbl-hint">used when their file has none</span></label>
+          <input type="text" id="clean-ftype" placeholder="e.g. 1000" value="1000" />
+        </div>
+      </div>
+
+      <button class="clean-btn" style="margin-top:20px;" onclick="cleanAndRender()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        Build standard CSV
+      </button>
     </div>
 
     <div class="results-section" id="clean-results">
       <div class="results-header">
-        <div class="results-meta">Cleaned <span id="clean-row-count">0</span> rows</div>
+        <div class="results-meta" id="parity">Cleaned <span id="clean-row-count">0</span> rows</div>
         <div class="action-btns">
           <button class="action-btn" onclick="copyCSV('clean')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -464,7 +743,7 @@
       </div>
       <div class="table-wrap"><div class="table-scroll">
         <table><thead><tr>
-          <th>#</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th>
+          <th>#</th><th>Their row</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th>
         </tr></thead><tbody id="clean-table-body"></tbody></table>
       </div></div>
     </div>
@@ -481,8 +760,6 @@
   let mirrorVT = false;
   let genRows  = [];
   let cleanRows = [];
-  let rawHeaders = [];
-  let rawData    = [];
 
   const STD_COLS = ['flyer_type_id','name','available_from','available_to','valid_from','valid_to'];
 
@@ -824,82 +1101,8 @@
     return result;
   }
 
-  function parseRaw() {
-    const raw = document.getElementById('raw-input').value.trim();
-    if (!raw) { document.getElementById('col-map-section').style.display = 'none'; return; }
-    const lines = raw.split('\n').filter(l => l.trim());
-    if (lines.length < 2) { document.getElementById('col-map-section').style.display = 'none'; return; }
 
-    rawHeaders = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
-    rawData = lines.slice(1).map(l => {
-      const vals = parseCSVLine(l).map(v => v.replace(/^"|"$/g,'').trim());
-      const obj = {};
-      rawHeaders.forEach((h, i) => obj[h] = vals[i] || '');
-      return obj;
-    });
 
-    const detDiv = document.getElementById('detected-cols');
-    detDiv.innerHTML = rawHeaders.map(h => `<span class="col-pill" id="pill-${h.replace(/\W/g,'_')}">${h}</span>`).join('');
-
-    const mapper = document.getElementById('col-mapper');
-    const targets = ['name','available_from','available_to','valid_from','valid_to','flyer_type_id'];
-    const labels  = ['name','available_from','available_to','valid_from','valid_to','flyer_type_id (optional)'];
-    mapper.innerHTML = targets.map((t, idx) => {
-      const opts = ['<option value="">(skip)</option>', ...rawHeaders.map(h => {
-        const auto = h.toLowerCase().replace(/[\s_-]/g,'');
-        const tgt  = t.replace(/_/g,'');
-        const sel  = auto.includes(tgt) || tgt.includes(auto) ? ' selected' : '';
-        return `<option value="${h}"${sel}>${h}</option>`;
-      })].join('');
-      return `<div class="field"><label>→ ${labels[idx]}</label><select id="map-${t}" onchange="highlightMapped()">${opts}</select></div>`;
-    }).join('');
-
-    document.getElementById('col-map-section').style.display = 'block';
-    highlightMapped();
-  }
-
-  function highlightMapped() {
-    document.querySelectorAll('.col-pill').forEach(p => p.classList.remove('mapped'));
-    ['name','available_from','available_to','valid_from','valid_to','flyer_type_id'].forEach(t => {
-      const sel = document.getElementById('map-' + t);
-      if (sel && sel.value) {
-        const pill = document.getElementById('pill-' + sel.value.replace(/\W/g,'_'));
-        if (pill) pill.classList.add('mapped');
-      }
-    });
-  }
-
-  function cleanAndRender() {
-    if (!rawData.length) { showToast('No data to clean'); return; }
-    const fallbackFtype = document.getElementById('clean-ftype').value.trim() || '1000';
-    const getMap = t => { const el = document.getElementById('map-'+t); return el ? el.value : ''; };
-
-    cleanRows = rawData.map(row => {
-      const ftype = getMap('flyer_type_id') ? (row[getMap('flyer_type_id')] || fallbackFtype) : fallbackFtype;
-      const name  = getMap('name') ? (row[getMap('name')] || '') : '';
-
-      const parseFmt = key => {
-        const col = getMap(key);
-        if (!col || !row[col]) return '';
-        const { date, hasTime } = tryParseDate(row[col]);
-        return date ? fmtOutput(date, hasTime) : row[col];
-      };
-
-      return {
-        flyer_type_id: ftype,
-        name: name,
-        available_from: parseFmt('available_from'),
-        available_to:   parseFmt('available_to'),
-        valid_from:     parseFmt('valid_from'),
-        valid_to:       parseFmt('valid_to'),
-      };
-    }).filter(r => r.available_from || r.name);
-
-    renderResultTable('clean-table-body', cleanRows);
-    document.getElementById('clean-results').style.display = 'block';
-    document.getElementById('clean-row-count').textContent = cleanRows.length;
-    document.getElementById('clean-results').scrollIntoView({ behavior:'smooth', block:'start' });
-  }
 
   function toCSVString(rows) {
     return [STD_COLS.join(','), ...rows.map(r => STD_COLS.map(c => `"${r[c] || ''}"`).join(','))].join('\n');
@@ -925,6 +1128,403 @@
   }
 
   rebuildCustomRows();
+
+  /* ============================================================
+     CLEAN TAB — retailer-provided schedules
+     Self-contained: nothing here is used by the Generate tab.
+     ============================================================ */
+  let cleanWB       = null;   // SheetJS workbook (file path only)
+  let cleanGrid     = [];     // current sheet as array-of-arrays
+  let headerRowIdx  = 0;      // which grid row holds the column names
+  let dateMode      = 'auto';
+  let dateAutoGuess = '';     // 'mdy' | 'dmy' | '' (ambiguous)
+  let blankSkipped  = 0;
+
+  const MAP_TARGETS = ['name','available_from','available_to','valid_from','valid_to','flyer_type_id'];
+  const MAP_LABELS  = {
+    name:'name', available_from:'available_from', available_to:'available_to',
+    valid_from:'valid_from', valid_to:'valid_to', flyer_type_id:'flyer_type_id (optional)'
+  };
+  // Retailer templates rarely use our column names — match on how they actually label things.
+  const MAP_SYNONYMS = {
+    name:            ['name','flyername','event','eventname','promo','promotion','description','title','week','ad','adname','version'],
+    available_from:  ['availablefrom','availfrom','available','startdate','start','live','livedate','postdate','posted','from','begin','begins','onlinedate'],
+    available_to:    ['availableto','availto','enddate','end','expiry','expires','expire','to','thru','through','offline','offlinedate','takedown'],
+    valid_from:      ['validfrom','effective','effectivedate','salestart','saledate','instore','inhome','inhomedate','validstart'],
+    valid_to:        ['validto','saleend','validthru','validend','validuntil','lastday'],
+    flyer_type_id:   ['flyertypeid','flyertype','typeid','ftype','flyerid','typecode']
+  };
+
+  const norm = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g,'');
+
+  function fmtBytes(b){
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(0) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
+  }
+
+  /* ---------- file intake ---------- */
+  (function wireDrop(){
+    const dz = document.getElementById('clean-drop');
+    const fi = document.getElementById('clean-file');
+    if (!dz) return;
+    dz.addEventListener('click', () => fi.click());
+    fi.addEventListener('change', function(){ if (this.files[0]) loadCleanFile(this.files[0]); this.value=''; });
+    ['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('over'); }));
+    ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('over'); }));
+    dz.addEventListener('drop', e => { if (e.dataTransfer.files[0]) loadCleanFile(e.dataTransfer.files[0]); });
+  })();
+
+  function loadCleanFile(file){
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      try {
+        cleanWB = XLSX.read(new Uint8Array(ev.target.result), { type:'array', cellDates:true });
+        const sheets = cleanWB.SheetNames;
+        const sp = document.getElementById('sheet-pick');
+        sp.innerHTML = sheets.map(s => `<option value="${s}">${s}</option>`).join('');
+        document.getElementById('sheet-row').style.display = 'grid';
+        document.getElementById('clean-filemeta').innerHTML =
+          `<span class="fpill"><b>${file.name}</b> · ${fmtBytes(file.size)}` +
+          (sheets.length > 1 ? ` · ${sheets.length} sheets` : '') + `</span>`;
+        onSheetPick();
+        showToast('Loaded ' + file.name);
+      } catch(err){
+        showToast('Couldn\u2019t read that file');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function onSheetPick(){
+    const name = document.getElementById('sheet-pick').value;
+    const ws = cleanWB.Sheets[name];
+    cleanGrid = XLSX.utils.sheet_to_json(ws, { header:1, defval:'', raw:false, blankrows:true });
+    buildHeaderPicker();
+    headerRowIdx = guessHeaderRow();
+    document.getElementById('header-pick').value = String(headerRowIdx);
+    rebuildMapping();
+  }
+
+  /* ---------- header row: retailer files often have title rows on top ---------- */
+  function rowCells(i){ return (cleanGrid[i] || []).map(c => String(c == null ? '' : c).trim()); }
+  function nonEmpty(arr){ return arr.filter(c => c !== '').length; }
+
+  function guessHeaderRow(){
+    let best = 0, bestScore = -1;
+    for (let i = 0; i < Math.min(cleanGrid.length, 12); i++){
+      const cells = rowCells(i);
+      const filled = nonEmpty(cells);
+      if (filled < 2) continue;
+      // header cells read like labels: letters present, not pure numbers/dates
+      const labelish = cells.filter(c => c !== '' && /[a-z]/i.test(c) && !/^\d+([\/\-]\d+)*$/.test(c)).length;
+      const next = nonEmpty(rowCells(i+1));
+      const score = labelish * 2 + Math.min(filled, next);
+      if (score > bestScore){ bestScore = score; best = i; }
+    }
+    return best;
+  }
+
+  function buildHeaderPicker(){
+    const hp = document.getElementById('header-pick');
+    const n = Math.min(cleanGrid.length, 12);
+    let opts = '';
+    for (let i = 0; i < n; i++){
+      const preview = rowCells(i).filter(c => c !== '').slice(0,4).join(', ').slice(0,52) || '(blank row)';
+      opts += `<option value="${i}">Row ${i+1} — ${preview}</option>`;
+    }
+    hp.innerHTML = opts;
+  }
+
+  function onHeaderPick(){
+    headerRowIdx = parseInt(document.getElementById('header-pick').value, 10) || 0;
+    rebuildMapping();
+  }
+
+  /* ---------- derived headers + data rows ---------- */
+  function cleanHeaders(){
+    return rowCells(headerRowIdx).map((c,i) => c !== '' ? c : 'Column ' + (i+1));
+  }
+  function cleanDataRows(){
+    const out = [];
+    blankSkipped = 0;
+    for (let i = headerRowIdx + 1; i < cleanGrid.length; i++){
+      const cells = rowCells(i);
+      if (nonEmpty(cells) === 0){ blankSkipped++; continue; }   // spacer lines aren't rows
+      out.push({ srcRow: i + 1, cells: cells });
+    }
+    return out;
+  }
+  function cellAt(row, header){
+    const idx = cleanHeaders().indexOf(header);
+    return idx === -1 ? '' : (row.cells[idx] || '');
+  }
+
+  /* ---------- mapping ---------- */
+  function autoPick(target, headers){
+    const syns = MAP_SYNONYMS[target] || [];
+    let best = '', bestScore = 0;
+    headers.forEach(h => {
+      const n = norm(h);
+      if (!n) return;
+      let score = 0;
+      if (n === norm(target)) score = 100;
+      else syns.forEach(s => {
+        if (n === s) score = Math.max(score, 90);
+        else if (n.indexOf(s) !== -1 || s.indexOf(n) !== -1) score = Math.max(score, 40 + Math.min(s.length, n.length));
+      });
+      if (score > bestScore){ bestScore = score; best = h; }
+    });
+    return bestScore >= 40 ? best : '';
+  }
+
+  function rebuildMapping(){
+    const headers = cleanHeaders();
+    if (!headers.length){ document.getElementById('col-map-section').style.display = 'none'; return; }
+
+    document.getElementById('detected-cols').innerHTML =
+      headers.map(h => `<span class="col-pill" id="pill-${h.replace(/\W/g,'_')}">${h}</span>`).join('');
+
+    document.getElementById('col-mapper').innerHTML = MAP_TARGETS.map(t => {
+      const pick = autoPick(t, headers);
+      const opts = ['<option value="">(skip)</option>'].concat(
+        headers.map(h => `<option value="${h}"${h === pick ? ' selected' : ''}>${h}</option>`)
+      ).join('');
+      return `<div class="field">
+        <label>→ ${MAP_LABELS[t]}</label>
+        <select id="map-${t}" onchange="onMapChange()">${opts}</select>
+        <div class="map-sample" id="sample-${t}"></div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('col-map-section').style.display = 'block';
+    detectDateOrder();
+    onMapChange();
+  }
+
+  function getMap(t){ const el = document.getElementById('map-' + t); return el ? el.value : ''; }
+
+  function onMapChange(){
+    highlightMapped();
+    const rows = cleanDataRows();
+    MAP_TARGETS.forEach(t => {
+      const el = document.getElementById('sample-' + t);
+      if (!el) return;
+      const col = getMap(t);
+      if (!col){ el.className = 'map-sample'; el.textContent = 'not mapped'; return; }
+      // first non-empty value in that column, so you can see what will land there
+      let val = '';
+      for (const r of rows){ const v = cellAt(r, col); if (String(v).trim() !== ''){ val = v; break; } }
+      if (val === ''){ el.className = 'map-sample warn'; el.textContent = 'column is empty'; return; }
+      if (t === 'name' || t === 'flyer_type_id'){
+        el.className = 'map-sample ok'; el.textContent = 'e.g. ' + String(val).slice(0,30);
+      } else {
+        const p = parseRetailerDate(val);
+        el.className = 'map-sample ' + (p.date ? 'ok' : 'warn');
+        el.textContent = p.date ? `e.g. ${val} → ${fmtOutput(p.date, p.hasTime)}` : `e.g. ${val} → can\u2019t read as a date`;
+      }
+    });
+  }
+
+  function highlightMapped(){
+    document.querySelectorAll('.col-pill').forEach(p => p.classList.remove('mapped'));
+    MAP_TARGETS.forEach(t => {
+      const v = getMap(t);
+      if (v){
+        const pill = document.getElementById('pill-' + v.replace(/\W/g,'_'));
+        if (pill) pill.classList.add('mapped');
+      }
+    });
+  }
+
+  /* ---------- date handling (clean tab only) ---------- */
+  function setDateMode(m){
+    dateMode = m;
+    document.querySelectorAll('#date-mode button').forEach(b => b.classList.toggle('active', b.dataset.dm === m));
+    detectDateOrder();
+    onMapChange();
+  }
+
+  // Scan the mapped date columns: a component over 12 proves which position is the day.
+  function detectDateOrder(){
+    const rows = cleanDataRows();
+    const cols = ['available_from','available_to','valid_from','valid_to'].map(getMap).filter(Boolean);
+    let firstOver12 = false, secondOver12 = false, sawSlash = false;
+    rows.forEach(r => cols.forEach(c => {
+      const m = String(cellAt(r, c)).trim().match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+      if (!m) return;
+      sawSlash = true;
+      if (+m[1] > 12) firstOver12 = true;
+      if (+m[2] > 12) secondOver12 = true;
+    }));
+    dateAutoGuess = firstOver12 && !secondOver12 ? 'dmy' : (secondOver12 && !firstOver12 ? 'mdy' : '');
+
+    const hint = document.getElementById('date-mode-hint');
+    if (!hint) return;
+    if (dateMode !== 'auto'){
+      hint.innerHTML = `Reading <strong>${dateMode === 'mdy' ? 'month first' : 'day first'}</strong> for every row.`;
+    } else if (!sawSlash){
+      hint.innerHTML = 'No ambiguous dates found — their format reads cleanly.';
+    } else if (dateAutoGuess){
+      hint.innerHTML = `Detected <strong>${dateAutoGuess === 'dmy' ? 'day first' : 'month first'}</strong> from values in their file.`;
+    } else {
+      hint.innerHTML = 'These dates are <strong>ambiguous</strong> (no value above 12). Auto is reading them <strong>month first</strong> — switch if this retailer writes day first.';
+    }
+  }
+
+  function effectiveOrder(){
+    if (dateMode !== 'auto') return dateMode;
+    return dateAutoGuess || 'mdy';
+  }
+
+  const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+  function parseRetailerDate(v){
+    if (v == null) return { date:null, hasTime:false };
+    if (v instanceof Date && !isNaN(v)) return { date:v, hasTime:(v.getHours() || v.getMinutes()) > 0 };
+    let s = String(v).trim();
+    if (!s) return { date:null, hasTime:false };
+
+    // Excel serial number
+    if (/^\d{5}(\.\d+)?$/.test(s)){
+      const n = parseFloat(s);
+      const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000);
+      if (!isNaN(d)) return { date:new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getUTCHours(), d.getUTCMinutes()), hasTime: n % 1 !== 0 };
+    }
+
+    // split a trailing time
+    let hasTime = false, timeStr = null, datePart = s;
+    const tm = s.match(/^(.*?)[ T](\d{1,2}:\d{2}(?::\d{2})?)\s*([ap]\.?m\.?)?$/i);
+    if (tm){
+      datePart = tm[1].trim(); timeStr = tm[2]; hasTime = true;
+      if (tm[3] && /p/i.test(tm[3])){
+        const hp = timeStr.split(':'); const h = (parseInt(hp[0],10) % 12) + 12;
+        timeStr = h + ':' + hp[1] + (hp[2] ? ':' + hp[2] : '');
+      }
+    }
+
+    let d = null, m;
+    if ((m = datePart.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/))){
+      d = new Date(+m[1], +m[2] - 1, +m[3]);                       // ISO — unambiguous
+    } else if ((m = datePart.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/))){
+      let a = +m[1], b = +m[2], y = +m[3]; if (y < 100) y += 2000;
+      let mo, day;
+      if (a > 12){ day = a; mo = b; }                              // proof: day first
+      else if (b > 12){ mo = a; day = b; }                         // proof: month first
+      else if (effectiveOrder() === 'dmy'){ day = a; mo = b; }
+      else { mo = a; day = b; }
+      d = new Date(y, mo - 1, day);
+    } else if ((m = datePart.match(/^(\d{1,2})[\-\s]([a-z]{3,})[\-\s](\d{2,4})$/i))){
+      const mi = MONTHS.indexOf(m[2].slice(0,3).toLowerCase());
+      let y = +m[3]; if (y < 100) y += 2000;
+      if (mi >= 0) d = new Date(y, mi, +m[1]);                     // 05-Oct-2026
+    } else if ((m = datePart.match(/^([a-z]{3,})[\-\s](\d{1,2}),?[\-\s]*(\d{2,4})?$/i))){
+      const mi = MONTHS.indexOf(m[1].slice(0,3).toLowerCase());
+      let y = m[3] ? +m[3] : new Date().getFullYear(); if (y < 100) y += 2000;
+      if (mi >= 0) d = new Date(y, mi, +m[2]);                     // Oct 5, 2026
+    } else {
+      const dt = new Date(datePart);
+      if (!isNaN(dt)) d = dt;
+    }
+
+    if (d && isNaN(d)) d = null;
+    if (d && timeStr){
+      const tp = timeStr.split(':');
+      d.setHours(parseInt(tp[0],10) || 0, parseInt(tp[1],10) || 0, parseInt(tp[2],10) || 0);
+    }
+    return { date:d, hasTime:hasTime };
+  }
+
+  /* ---------- paste path feeds the same pipeline ---------- */
+  function parseRaw(){
+    const raw = document.getElementById('raw-input').value.trim();
+    if (!raw){ document.getElementById('col-map-section').style.display = 'none'; return; }
+    const lines = raw.split('\n').filter(l => l.trim());
+    if (lines.length < 2){ document.getElementById('col-map-section').style.display = 'none'; return; }
+    cleanWB = null;
+    cleanGrid = lines.map(l => parseCSVLine(l).map(v => v.replace(/^"|"$/g,'').trim()));
+    document.getElementById('sheet-row').style.display = 'grid';
+    document.getElementById('sheet-pick').innerHTML = '<option>Pasted rows</option>';
+    document.getElementById('clean-filemeta').innerHTML =
+      `<span class="fpill"><b>Pasted</b> · ${cleanGrid.length} lines</span>`;
+    buildHeaderPicker();
+    headerRowIdx = guessHeaderRow();
+    document.getElementById('header-pick').value = String(headerRowIdx);
+    rebuildMapping();
+  }
+
+  /* ---------- build the standard CSV — every row survives ---------- */
+  function cleanAndRender(){
+    const rows = cleanDataRows();
+    if (!rows.length){ showToast('No data rows found — check the header row'); return; }
+
+    const fallbackFtype = document.getElementById('clean-ftype').value.trim() || '1000';
+
+    cleanRows = rows.map(r => {
+      const flags = [];
+      const ftCol = getMap('flyer_type_id');
+      const ftRaw = ftCol ? String(cellAt(r, ftCol)).trim() : '';
+      const nmCol = getMap('name');
+      const name  = nmCol ? String(cellAt(r, nmCol)).trim() : '';
+      if (nmCol && !name) flags.push('name');
+
+      const field = key => {
+        const col = getMap(key);
+        if (!col) return { v:'', flag:'unmapped' };
+        const raw = String(cellAt(r, col)).trim();
+        if (!raw) { flags.push(key); return { v:'', flag:'blank' }; }
+        const p = parseRetailerDate(raw);
+        if (!p.date){ flags.push(key); return { v:raw, flag:'raw' }; }   // keep their value, never blank it
+        return { v:fmtOutput(p.date, p.hasTime), flag:'' };
+      };
+
+      const af = field('available_from'), at = field('available_to');
+      const vf = field('valid_from'),     vt = field('valid_to');
+
+      return {
+        flyer_type_id: ftRaw || fallbackFtype,
+        name: name,
+        available_from: af.v, available_to: at.v,
+        valid_from: vf.v,     valid_to: vt.v,
+        _src: r.srcRow,
+        _flags: { name: nmCol && !name, available_from: af.flag, available_to: at.flag,
+                  valid_from: vf.flag, valid_to: vt.flag },
+        _needs: flags.length > 0
+      };
+    });
+
+    renderCleanTable();
+
+    const attention = cleanRows.filter(r => r._needs).length;
+    document.getElementById('clean-row-count').textContent = cleanRows.length;
+    document.getElementById('parity').innerHTML =
+      `<span class="${attention ? 'parity-warn' : 'parity-ok'}">${rows.length} rows in → ${cleanRows.length} rows out</span>` +
+      (attention ? ` · ${attention} need a look` : ' · all mapped cleanly') +
+      (blankSkipped ? ` · ${blankSkipped} blank line${blankSkipped>1?'s':''} ignored` : '');
+
+    document.getElementById('clean-results').style.display = 'block';
+    document.getElementById('clean-results').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  function renderCleanTable(){
+    document.getElementById('clean-table-body').innerHTML = cleanRows.map((r,i) => {
+      const cell = (key) => {
+        const f = r._flags[key];
+        if (f === 'raw')      return `<td class="cell-raw" title="Couldn't read as a date — their original value kept">${r[key]}</td>`;
+        if (f === 'blank')    return `<td class="cell-missing" title="Empty in their file">empty</td>`;
+        if (f === 'unmapped') return `<td class="cell-missing" title="No column mapped">—</td>`;
+        return `<td>${r[key]}</td>`;
+      };
+      return `<tr>
+        <td class="row-num">${i+1}</td>
+        <td class="srccol">${r._src}</td>
+        <td>${r.flyer_type_id}</td>
+        <td class="name-cell">${r._flags.name ? '<span class="cell-missing">empty</span>' : r.name}</td>
+        ${cell('available_from')}${cell('available_to')}${cell('valid_from')}${cell('valid_to')}
+      </tr>`;
+    }).join('');
+  }
+
 </script>
 </body>
 </html>
