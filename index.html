@@ -27,6 +27,12 @@
     --primary-hover:#0077ED;
     --primary-soft:#EAF3FE;
     --primary-tint:#EAF3FE;
+    --indigo:#5E5CE6;
+    --indigo-hover:#6B69F0;
+    --indigo-soft:#EEEEFE;
+    --teal:#0E9F9A;
+    --teal-soft:#E4F6F5;
+    --pink:#D9459A;
     --amber:#FF9F0A;
     --red:#FF3B30;
     --green:#34C759;
@@ -42,6 +48,8 @@
   }
 
   html{ -webkit-text-size-adjust:100%; }
+  /* every form control inherits the UI font — stops Arial leaking into range/checkbox */
+  button, input, select, textarea, progress, option{ font-family:var(--sans); }
   body{
     background:var(--bg); color:var(--text);
     font-family:var(--sans); font-size:15px; line-height:1.47; letter-spacing:-.01em;
@@ -52,7 +60,7 @@
   .app{ max-width:1080px; margin:0 auto; padding:34px 26px 0; }
   .header{ margin-bottom:26px; }
   .badge{
-    display:inline-block; background:var(--sunken); color:var(--text3);
+    display:inline-block; background:var(--indigo-soft); color:var(--indigo);
     font-size:10.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
     padding:4px 11px; border-radius:var(--r-pill); margin-bottom:14px;
   }
@@ -80,6 +88,8 @@
     box-shadow:0 1px 3px rgba(0,0,0,.10);
   }
   .tab-btn svg{ width:14px; height:14px; }
+  .tab-btn.active:first-child svg{ color:var(--primary); }
+  .tab-btn.active:last-child svg{ color:var(--indigo); }
 
   .tab-panel{ display:none; }
   .tab-panel.active{ display:block; animation:panelIn .3s var(--ease); }
@@ -94,6 +104,7 @@
     font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
     color:var(--text3); margin-bottom:16px;
   }
+  .card-title .n{ color:var(--indigo); font-weight:700; }
   .card-title::after{ content:none; }
   .card-title-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
   .card-title-row .card-title{ margin-bottom:0; }
@@ -161,9 +172,10 @@
   .toggle-inline input[type="checkbox"]:checked::after{ transform:translateX(15px); }
   .toggle-inline input[type="checkbox"]:focus-visible{ box-shadow:0 0 0 4px rgba(0,113,227,.22); }
   .toggle-inline span{ font-size:12.5px; color:var(--text2); letter-spacing:-.005em; }
-  .toggle-inline span code{
+  code{
     font-family:var(--mono); font-size:11.5px; background:var(--sunken);
     padding:2px 6px; border-radius:6px; color:var(--text2);
+    letter-spacing:0;
   }
 
   /* ---------- naming convention switcher ---------- */
@@ -180,7 +192,7 @@
   .naming-toggle button:last-child{ border:none; }
   .naming-toggle button:hover:not(.active){ color:var(--text); }
   .naming-toggle button.active{
-    background:var(--surface); color:var(--text); font-weight:600;
+    background:var(--surface); color:var(--primary); font-weight:600;
     box-shadow:0 1px 3px rgba(0,0,0,.10);
   }
 
@@ -195,12 +207,13 @@
   .naming-hint strong{ color:var(--text); font-weight:600; }
   .preview-pill{
     display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;
-    background:var(--primary-soft); color:var(--primary);
+    background:var(--teal-soft); color:var(--teal);
     border-radius:var(--r-pill); padding:7px 14px; margin-top:12px;
     font-size:12.5px; font-weight:500;
   }
   .preview-pill span{
-    font-family:var(--mono); font-size:12px; letter-spacing:0;
+    font-size:12.5px; font-weight:600; letter-spacing:-.005em;
+    font-variant-numeric:tabular-nums;
   }
 
   .custom-seed-row{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
@@ -215,6 +228,25 @@
   .fill-btn:hover{ background:#EBEBED; }
   .fill-btn:active{ transform:scale(.97); }
 
+  .fill-btn.magic{
+    display:inline-flex; align-items:center; gap:7px;
+    background:var(--primary); color:#fff;
+  }
+  .fill-btn.magic:hover{ background:var(--primary-hover); }
+  .fill-btn.magic svg{ width:14px; height:14px; }
+  .naming-hint .detected{
+    display:inline-block; font-weight:600; color:var(--indigo);
+    margin-right:5px;
+  }
+  .pat-preview{
+    display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:10px;
+    font-size:12.5px; color:var(--text3);
+  }
+  .pat-preview span{
+    background:var(--teal-soft); color:var(--teal);
+    border-radius:var(--r-pill); padding:4px 11px; font-weight:600;
+    font-variant-numeric:tabular-nums; letter-spacing:-.005em;
+  }
   .custom-scroll{
     max-height:260px; overflow-y:auto; margin-top:14px;
     border-radius:var(--r-md); background:var(--sunken); padding:6px;
@@ -225,8 +257,8 @@
   }
   .custom-row-item:last-child{ border-bottom:none; }
   .custom-row-num{
-    flex:0 0 26px; text-align:right; font-family:var(--mono);
-    font-size:12px; color:var(--text3);
+    flex:0 0 26px; text-align:right;
+    font-size:12.5px; color:var(--text3); font-variant-numeric:tabular-nums;
   }
   .custom-row-item input{
     flex:1; height:34px; border:1px solid transparent; border-radius:var(--r-sm);
@@ -310,7 +342,9 @@
     padding:14px 24px; border-radius:var(--r-pill);
     transition:background .18s var(--ease), transform .18s var(--ease);
   }
-  .generate-btn:hover, .clean-btn:hover{ background:var(--primary-hover); }
+  .generate-btn:hover{ background:var(--primary-hover); }
+  .clean-btn{ background:var(--indigo); }
+  .clean-btn:hover{ background:var(--indigo-hover); }
   .generate-btn:active, .clean-btn:active{ transform:scale(.99); }
   .generate-btn svg, .clean-btn svg{ width:16px; height:16px; }
 
@@ -356,9 +390,10 @@
   tbody td{
     padding:11px 14px; border-bottom:1px solid rgba(0,0,0,.045);
     white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--text);
+    letter-spacing:-.005em;
   }
   tbody td.name-cell{ font-weight:600; letter-spacing:-.01em; }
-  .row-num{ color:var(--text3); font-family:var(--mono); font-size:12px; }
+  .row-num{ color:var(--text3); font-size:12.5px; font-variant-numeric:tabular-nums; }
 
   /* ---------- clean-mode input ---------- */
   .raw-area{
@@ -385,10 +420,10 @@
   .col-pill{
     background:var(--sunken); color:var(--text2);
     border-radius:var(--r-pill); padding:5px 12px;
-    font-family:var(--mono); font-size:11.5px;
+    font-size:12px;
     transition:background .18s, color .18s;
   }
-  .col-pill.mapped{ background:var(--primary-soft); color:var(--primary); font-weight:500; }
+  .col-pill.mapped{ background:var(--teal-soft); color:var(--teal); font-weight:600; }
 
   /* ---------- WIP notice ---------- */
   .wip{
@@ -412,16 +447,17 @@
   .filemeta{ margin-top:12px; font-size:13px; color:var(--text2); }
   .filemeta .fpill{
     display:inline-flex; align-items:center; gap:8px;
-    background:var(--sunken); border-radius:var(--r-pill); padding:6px 14px; font-size:12.5px;
+    background:var(--indigo-soft); color:var(--indigo);
+    border-radius:var(--r-pill); padding:6px 14px; font-size:12.5px; font-weight:500;
   }
-  .filemeta .fpill b{ font-weight:600; color:var(--text); }
+  .filemeta .fpill b{ font-weight:600; }
   .paste-alt{ margin-top:14px; }
   .paste-alt summary{
-    font-size:12.5px; color:var(--primary); cursor:pointer; list-style:none;
+    font-size:12.5px; color:var(--indigo); cursor:pointer; list-style:none;
     padding:4px 0; width:max-content;
   }
   .paste-alt summary::-webkit-details-marker{ display:none; }
-  .paste-alt summary:hover{ text-decoration:underline; text-underline-offset:2px; }
+  .paste-alt summary:hover{ color:var(--indigo-hover); text-decoration:underline; text-underline-offset:2px; }
   .paste-alt[open] summary{ margin-bottom:10px; }
   .lbl-hint{ font-weight:400; color:var(--text3); font-size:12px; }
 
@@ -436,24 +472,24 @@
   }
   .date-mode button:hover:not(.active){ color:var(--text); }
   .date-mode button.active{
-    background:var(--surface); color:var(--text); font-weight:600;
+    background:var(--surface); color:var(--indigo); font-weight:600;
     box-shadow:0 1px 3px rgba(0,0,0,.10);
   }
 
   /* mapping cards show a live sample from their file */
   .map-sample{
-    font-family:var(--mono); font-size:11.5px; color:var(--text3);
+    font-size:12px; color:var(--text3); font-variant-numeric:tabular-nums;
     margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .map-sample.ok{ color:#248A3D; }
+  .map-sample.ok{ color:var(--teal); }
   .map-sample.warn{ color:#B25F00; }
 
   /* row-parity readout */
-  .results-meta .parity-ok{ color:#248A3D; font-weight:600; }
+  .results-meta .parity-ok{ color:var(--teal); font-weight:600; }
   .results-meta .parity-warn{ color:#B25F00; font-weight:600; }
   td.cell-missing, .cell-missing{ color:#B25F00; background:#FFFBF2; font-style:italic; font-weight:400; }
   td.cell-raw{ color:#B25F00; background:#FFFBF2; }
-  .srccol{ color:var(--text3); font-family:var(--mono); font-size:12px; }
+  .srccol{ color:var(--text3); font-size:12.5px; font-variant-numeric:tabular-nums; }
 
   /* ---------- toast ---------- */
   .toast{
@@ -544,7 +580,7 @@
         </div>
         <div style="margin-top:14px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
           <label class="toggle-inline">
-            <input type="checkbox" id="prefix-calendar-cb" onchange="updatePrefixPreview()" />
+            <input type="checkbox" id="prefix-calendar-cb" onchange="updatePrefixPreview()" checked />
             <span>Calendar mode (roll over months — e.g. <code>Jun 30</code> → <code>Jul 7</code>)</span>
           </label>
         </div>
@@ -555,22 +591,20 @@
       <div class="naming-panel" id="panel-custom">
         <div class="custom-seed-row">
           <div class="field">
-            <label>seed name (row 1)</label>
-            <input type="text" id="custom-seed" placeholder="e.g. Coming Attractions Week 41" oninput="updateCustomHint()" />
+            <label>How your retailer names the first period</label>
+            <input type="text" id="custom-seed" placeholder="e.g. WE102826, 06.13, Oct Week 4, Oct W1 - Tepps" oninput="updateCustomHint()" />
           </div>
-          <div class="field" style="flex:0 0 80px;">
-            <label>increment #</label>
+          <div class="field" id="custom-step-wrap" style="flex:0 0 96px; display:none;">
+            <label>step per row</label>
             <input type="number" id="custom-step" placeholder="1" value="1" min="1" oninput="updateCustomHint()" />
           </div>
-          <button class="fill-btn" onclick="fillCustomFromSeed()">Auto-fill ↓</button>
+          <button class="fill-btn magic" onclick="autoDetectFill()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M4.2 7.2l2.1 2.1M17.7 14.7l2.1 2.1M3 12h3M18 12h3M4.2 16.8l2.1-2.1M17.7 9.3l2.1-2.1"/><circle cx="12" cy="12" r="3.2"/></svg>
+            Auto-detect &amp; fill
+          </button>
         </div>
-        <div style="margin-bottom:10px;">
-          <label class="toggle-inline">
-            <input type="checkbox" id="custom-calendar-cb" onchange="updateCustomHint()" />
-            <span>Calendar mode (roll over months — e.g. <code>Jun 30</code> → <code>Jul 7</code>)</span>
-          </label>
-        </div>
-        <div class="naming-hint" id="custom-seed-hint" style="margin-bottom:10px;">Enter row 1 name — the last number wraps back to 01 after 52.</div>
+        <input type="checkbox" id="custom-calendar-cb" checked hidden />
+        <div class="naming-hint" id="custom-seed-hint" style="margin-bottom:10px;">Type the name your retailer uses for the first period — then hit Auto-detect. Recognised: <code>06.13</code>, <code>WE102826</code>, <code>Oct Week 4</code>, <code>Oct W1 - Tepps</code>, <code>Oct 5</code>, <code>Week 39</code>.</div>
         <div class="custom-scroll" id="custom-names-list"></div>
       </div>
 
@@ -673,7 +707,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">1 · Retailer file</div>
+      <div class="card-title"><span class="n">1</span> · Retailer file</div>
 
       <div class="dropzone" id="clean-drop">
         <b>Drop the retailer's .xlsx or .csv here, or click to browse</b>
@@ -700,11 +734,11 @@
     </div>
 
     <div class="card" id="col-map-section" style="display:none;">
-      <div class="card-title">2 · Map their columns to ours</div>
+      <div class="card-title"><span class="n">2</span> · Map their columns to ours</div>
       <div class="detected-cols" id="detected-cols"></div>
       <div class="col-mapper" id="col-mapper" style="margin-top:16px;"></div>
 
-      <div class="card-title" style="margin-top:24px;">3 · Date format &amp; fallback</div>
+      <div class="card-title" style="margin-top:24px;"><span class="n">3</span> · Date format &amp; fallback</div>
       <div class="form-grid">
         <div class="field">
           <label>How to read ambiguous dates <span class="lbl-hint">e.g. 10/05/2026</span></label>
@@ -860,24 +894,6 @@
 
   // For custom mode: given a seed string with embedded number, advance the date if calendar mode
   // Returns the new string, or null if no month detected before the number
-  function buildCalendarCustomName(seed, stepDays, iterationIndex) {
-    const all = [...seed.matchAll(/\d+/g)];
-    if (!all.length) return null;
-    const last = all[all.length - 1];
-    // Look at the word immediately before the last number
-    const before = seed.slice(0, last.index).trim();
-    const afterNum = seed.slice(last.index + last[0].length);
-    const words = before.split(/\s+/);
-    const lastWord = words[words.length - 1] || '';
-    const monthIdx = detectMonthIndex(lastWord);
-    if (monthIdx === -1) return null;
-    const useLong = lastWord.length > 3;
-    const startDay = parseInt(last[0]);
-    const rolled = rollMonthDay(monthIdx, startDay, stepDays * iterationIndex, useLong);
-    // Replace the month word + number with rolled values
-    words[words.length - 1] = rolled.monthName;
-    return words.join(' ') + ' ' + rolled.day + afterNum;
-  }
 
   function updatePrefixPreview() {
     const p  = document.getElementById('prefix-text').value.trim() || 'Week';
@@ -918,58 +934,7 @@
     return str.slice(0, last.index) + padded + str.slice(last.index + last[0].length);
   }
 
-  function updateCustomHint() {
-    const seed = document.getElementById('custom-seed').value.trim();
-    const step = parseInt(document.getElementById('custom-step').value) || 1;
-    const calMode = document.getElementById('custom-calendar-cb').checked;
-    const hint = document.getElementById('custom-seed-hint');
 
-    if (!seed) {
-      hint.innerHTML = calMode
-        ? 'Calendar mode is on — try a seed like <strong>Jun 30</strong> and dates will roll into the next month.'
-        : 'Enter row 1 name — the last number wraps back to 01 after 52.';
-      return;
-    }
-
-    if (calMode) {
-      const c0 = buildCalendarCustomName(seed, step, 0);
-      const c1 = buildCalendarCustomName(seed, step, 1);
-      const c2 = buildCalendarCustomName(seed, step, 2);
-      if (c0 !== null) {
-        hint.innerHTML = `📅 Preview: <strong>${c0}</strong> → <strong>${c1}</strong> → <strong>${c2}</strong>`;
-        return;
-      } else {
-        hint.innerHTML = '<strong style="color:var(--primary)">Calendar mode is on, but no month name found before the number — falling back to numeric increment</strong>';
-        return;
-      }
-    }
-
-    const num = extractLastNum(seed);
-    if (num === null) {
-      hint.innerHTML = '<strong>No number found</strong> — a row suffix will be appended.';
-    } else {
-      const r2 = replaceLastNum(seed, wrapWeek(num + step));
-      const r3 = replaceLastNum(seed, wrapWeek(num + step * 2));
-      hint.innerHTML = `Preview: <strong>${seed}</strong> → <strong>${r2}</strong> → <strong>${r3}</strong>`;
-    }
-  }
-
-  function fillCustomFromSeed() {
-    const seed = document.getElementById('custom-seed').value.trim();
-    const step = parseInt(document.getElementById('custom-step').value) || 1;
-    const calMode = document.getElementById('custom-calendar-cb').checked;
-    if (!seed) { showToast('Enter a seed name first'); return; }
-    const num = extractLastNum(seed);
-    document.querySelectorAll('#custom-names-list input').forEach((inp, i) => {
-      if (calMode) {
-        const cal = buildCalendarCustomName(seed, step, i);
-        if (cal !== null) { inp.value = cal; return; }
-      }
-      if (num !== null) inp.value = replaceLastNum(seed, wrapWeek(num + i * step));
-      else              inp.value = `${seed} ${String(i+1).padStart(2,'0')}`;
-    });
-    showToast('All rows filled!');
-  }
 
   function rebuildCustomRows() {
     const n = parseInt(document.getElementById('slider').value);
@@ -999,7 +964,11 @@
     }
     if (namingMode === 'custom') {
       const inputs = document.querySelectorAll('#custom-names-list input');
-      return inputs[i] ? (inputs[i].value.trim() || `Row ${i+1}`) : `Row ${i+1}`;
+      const typed = inputs[i] ? inputs[i].value.trim() : '';
+      if (typed) return typed;
+      const seed = document.getElementById('custom-seed').value.trim();
+      if (seed) { const pat = analyzeSeed(seed); if (pat) return pat.render(i); }
+      return `Row ${i+1}`;
     }
   }
 
@@ -1404,7 +1373,9 @@
     }
 
     let d = null, m;
-    if ((m = datePart.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/))){
+    if ((m = datePart.match(/^(19|20)(\d{2})(\d{2})(\d{2})$/))){
+      d = new Date(+(m[1]+m[2]), +m[3] - 1, +m[4]);               // 20261005
+    } else if ((m = datePart.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/))){
       d = new Date(+m[1], +m[2] - 1, +m[3]);                       // ISO — unambiguous
     } else if ((m = datePart.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/))){
       let a = +m[1], b = +m[2], y = +m[3]; if (y < 100) y += 2000;
@@ -1423,11 +1394,20 @@
       let y = m[3] ? +m[3] : new Date().getFullYear(); if (y < 100) y += 2000;
       if (mi >= 0) d = new Date(y, mi, +m[2]);                     // Oct 5, 2026
     } else {
-      const dt = new Date(datePart);
-      if (!isNaN(dt)) d = dt;
+      // last resort: only trust it if a month name is actually in the text
+      const hasMonthWord = MONTHS.some(mo => datePart.toLowerCase().indexOf(mo) !== -1);
+      if (hasMonthWord){
+        const dt = new Date(datePart);
+        if (!isNaN(dt)) d = dt;
+      }
     }
 
     if (d && isNaN(d)) d = null;
+    // plausibility guard: a schedule date outside this window means we misread it
+    if (d){
+      const y = d.getFullYear(), now = new Date().getFullYear();
+      if (y < now - 2 || y > now + 6) d = null;
+    }
     if (d && timeStr){
       const tp = timeStr.split(':');
       d.setHours(parseInt(tp[0],10) || 0, parseInt(tp[1],10) || 0, parseInt(tp[2],10) || 0);
@@ -1523,6 +1503,207 @@
         ${cell('available_from')}${cell('available_to')}${cell('valid_from')}${cell('valid_to')}
       </tr>`;
     }).join('');
+  }
+
+  /* ============================================================
+     NAME PATTERN ENGINE
+     Every pattern that carries a date is rendered FROM the real
+     generated period dates, so an impossible name (Jul 32) can't
+     be produced. Patterns without a date use a counter.
+     ============================================================ */
+
+  const MW_TOKENS = { 'week':'Week', 'wk':'Wk', 'w':'W' };
+
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function monthShort(i){ return MONTH_NAMES_SHORT[i]; }
+  function monthLong(i){ return MONTH_NAMES_LONG[i]; }
+
+  // Match the capitalisation style the user typed the month in
+  function styleMonth(idx, sample){
+    const long = sample.trim().length > 3;
+    let name = long ? monthLong(idx) : monthShort(idx);
+    if (sample === sample.toUpperCase()) return name.toUpperCase();
+    if (sample === sample.toLowerCase()) return name.toLowerCase();
+    return name;
+  }
+
+  /**
+   * Work out what kind of name the seed is.
+   * Returns { kind, label, render(i, date), needsStep }  — or null.
+   *   i    = row index (0-based)
+   *   date = that row's available_from (a real Date)
+   */
+  function analyzeSeed(seed){
+    const s = String(seed || '').trim();
+    if (!s) return null;
+
+    // ---- 1. Week-ending block: WE102826 / WE 1028 / WE10282026 ----
+    let m = s.match(/^([A-Za-z]{1,3})[\s._-]*(\d{4}|\d{6}|\d{8})\s*$/);
+    if (m && /^(we|wk|w| we)$/i.test(m[1])) {
+      const prefix = m[1], digits = m[2], sep = s.slice(m[1].length, s.length - digits.length);
+      const mm = +digits.slice(0,2), dd = +digits.slice(2,4);
+      let yy;
+      if (digits.length === 4)      yy = new Date().getFullYear();
+      else if (digits.length === 6) yy = 2000 + (+digits.slice(4,6));
+      else                          yy = +digits.slice(4,8);
+      if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+        const anchor = new Date(yy, mm - 1, dd);
+        const styleYear = digits.length;
+        return {
+          kind:'we',
+          title:'week-ending date',
+          label:`week-ending date — <strong>${prefix.toUpperCase()}</strong> + ${styleYear===4?'MMDD':styleYear===6?'MMDDYY':'MMDDYYYY'}, rolling with your cadence`,
+          needsStep:false,
+          render(i){
+            const d = addDays(anchor, i * cadenceDays);
+            let out = pad2(d.getMonth()+1) + pad2(d.getDate());
+            if (styleYear === 6) out += String(d.getFullYear()).slice(2);
+            if (styleYear === 8) out += String(d.getFullYear());
+            return prefix + sep + out;
+          }
+        };
+      }
+    }
+
+    // ---- 2. Month + week-of-month: "Oct Week 4", "Oct W1 - Tepps" ----
+    m = s.match(/^(.*?)\b([A-Za-z]{3,9})\.?(\s*)(week|wk|w)([\s.#-]*)(\d{1,2})\b(.*)$/i);
+    if (m) {
+      const pre = m[1], monthWord = m[2], gapA = m[3], token = m[4], gapB = m[5],
+            startWk = +m[6], post = m[7];
+      const mIdx = detectMonthIndex(monthWord);
+      if (mIdx !== -1 && startWk >= 1 && startWk <= 5) {
+        const tokenStyle = MW_TOKENS[token.toLowerCase()] || token;
+        const tokenOut = token === token.toUpperCase() && token.length > 1 ? tokenStyle.toUpperCase() : tokenStyle;
+        const WEEKS_PER_MONTH = 4;
+        return {
+          kind:'monthweek',
+          title:'month + week-of-month',
+          label:`month + week-of-month — counts to <strong>${tokenOut + gapB + WEEKS_PER_MONTH}</strong>, then rolls into the next month at ${tokenOut + gapB}1`,
+          needsStep:false,
+          render(i){
+            // sequential: W4 -> next month W1
+            let total = (startWk - 1) + i;
+            const monthsOn = Math.floor(total / WEEKS_PER_MONTH);
+            const wk = (total % WEEKS_PER_MONTH) + 1;
+            const mi = (((mIdx + monthsOn) % 12) + 12) % 12;
+            return (pre || '') + styleMonth(mi, monthWord) + (gapA || ' ') + tokenOut + gapB + wk + (post || '');
+          }
+        };
+      }
+    }
+
+    // ---- 3. Numeric month.day: 06.13 / 6/13 / 06-13 ----
+    m = s.match(/^(\d{1,2})([.\/\-])(\d{1,2})\s*$/);
+    if (m) {
+      let a = +m[1], b = +m[3];
+      const sep = m[2], padA = m[1].length >= 2, padB = m[3].length >= 2;
+      let mm, dd, order;
+      if (a > 12)      { dd = a; mm = b; order = 'day first'; }
+      else if (b > 12) { mm = a; dd = b; order = 'month first'; }
+      else             { mm = a; dd = b; order = 'month first'; }
+      if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+        const anchor = new Date(new Date().getFullYear(), mm - 1, dd);
+        return {
+          kind:'mmdd',
+          title:'numeric month/day',
+          label:`numeric month${sep}day (read ${order}) — rolls into the next month on the calendar`,
+          needsStep:false,
+          render(i){
+            const d = addDays(anchor, i * cadenceDays);
+            const M = padA ? pad2(d.getMonth()+1) : String(d.getMonth()+1);
+            const D = padB ? pad2(d.getDate())    : String(d.getDate());
+            return (order === 'day first') ? (D + sep + M) : (M + sep + D);
+          }
+        };
+      }
+    }
+
+    // ---- 4. Month name + day: "Oct 5", "December 29" (+ optional suffix) ----
+    m = s.match(/^(.*?)\b([A-Za-z]{3,9})\.?\s+(\d{1,2})\b(.*)$/);
+    if (m && detectMonthIndex(m[2]) !== -1 && !/^(week|wk|w)$/i.test(m[2])) {
+      const pre = m[1], monthWord = m[2], startDay = +m[3], post = m[4];
+      const mIdx = detectMonthIndex(monthWord);
+      const padDay = /^0\d$/.test(m[3]);   // "Oct 05" pads; "Jul 28" doesn't tell us to
+      const anchor = new Date(new Date().getFullYear(), mIdx, startDay);
+      return {
+        kind:'monthday',
+        title:'month + day',
+        label:'month + day — rolls onto real calendar dates, so it can never produce an invalid day',
+        needsStep:false,
+        render(i){
+          const d = addDays(anchor, i * cadenceDays);
+          const D = padDay ? pad2(d.getDate()) : String(d.getDate());
+          return (pre || '') + styleMonth(d.getMonth(), monthWord) + ' ' + D + (post || '');
+        }
+      };
+    }
+
+    // ---- 5. Any trailing number: "Week 39", "Flyer 7" ----
+    const num = extractLastNum(s);
+    if (num !== null) {
+      return {
+        kind:'counter',
+        title:'text + number',
+        label:'text + number — the last number steps up each row and wraps back to 01 after 52',
+        needsStep:true,
+        render(i){
+          const step = parseInt(document.getElementById('custom-step').value) || 1;
+          return replaceLastNum(s, wrapWeek(num + i * step));
+        }
+      };
+    }
+
+    // ---- 6. No number at all ----
+    return {
+      kind:'plain',
+      title:'plain text',
+      label:'plain text — a two-digit row number will be appended',
+      needsStep:false,
+      render(i){ return s + ' ' + pad2(i+1); }
+    };
+  }
+
+  /* ---------- the sequence of available_from dates, for date-bearing patterns ---------- */
+  function periodDates(){
+    const n = parseInt(document.getElementById('slider').value) || 1;
+    const start = parseDateInput(document.getElementById('avail-from').value, null);
+    const out = [];
+    for (let i = 0; i < n; i++) out.push(start ? addDays(start, i * cadenceDays) : null);
+    return out;
+  }
+
+  /* ---------- auto-detect: describe the pattern + fill every row ---------- */
+  function autoDetectFill(){
+    const seed = document.getElementById('custom-seed').value.trim();
+    if (!seed) { showToast('Type row 1\u2019s name first'); return; }
+    const pat = analyzeSeed(seed);
+    updateCustomHint();
+    const inputs = document.querySelectorAll('#custom-names-list input');
+    inputs.forEach((inp, i) => { inp.value = pat.render(i); });
+    showToast('Detected ' + (pat.title || pat.kind) + ' \u2014 ' + inputs.length + ' rows filled');
+  }
+
+  function fillCustomFromSeed(){ autoDetectFill(); }
+
+  function updateCustomHint(){
+    const seed = document.getElementById('custom-seed').value.trim();
+    const hint = document.getElementById('custom-seed-hint');
+    const stepWrap = document.getElementById('custom-step-wrap');
+
+    if (!seed) {
+      if (stepWrap) stepWrap.style.display = 'none';
+      hint.innerHTML = 'Type the name your retailer uses for the first period \u2014 then hit Auto-detect. ' +
+        'Recognised: <code>06.13</code>, <code>WE102826</code>, <code>Oct Week 4</code>, <code>Oct W1 - Tepps</code>, ' +
+        '<code>Oct 5</code>, <code>Week 39</code>.';
+      return;
+    }
+
+    const pat = analyzeSeed(seed);
+    if (stepWrap) stepWrap.style.display = pat.needsStep ? '' : 'none';
+
+    const p = [0,1,2,3].map(i => pat.render(i));
+    hint.innerHTML = `<span class="detected">Detected:</span> ${pat.label}` +
+      `<div class="pat-preview"><span>${p[0]}</span> \u2192 <span>${p[1]}</span> \u2192 <span>${p[2]}</span> \u2192 <span>${p[3]}</span> \u2026</div>`;
   }
 
 </script>
