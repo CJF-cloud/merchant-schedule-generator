@@ -65,6 +65,10 @@
     padding:4px 11px; border-radius:var(--r-pill); margin-bottom:14px;
   }
   .badge::before{ content:none; }
+  .vtag{
+    display:inline-block; margin-left:8px; font-size:10.5px; font-weight:600;
+    color:var(--text3); letter-spacing:.04em; vertical-align:2px;
+  }
   h1{
     font-size:34px; font-weight:600; letter-spacing:-.03em; line-height:1.1; color:var(--text);
   }
@@ -113,12 +117,10 @@
   .form-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
   .form-grid.three{ grid-template-columns:repeat(3,1fr); }
   .form-grid.four{ grid-template-columns:repeat(4,1fr); }
-  @media (max-width:640px){
-    .form-grid, .form-grid.three, .form-grid.four{ grid-template-columns:1fr; }
-    .app{ padding:26px 16px 0; }
-    .card{ padding:18px 16px; }
-    h1{ font-size:27px; }
-  }
+
+  /* long tables and wide content never widen the page */
+  .table-scroll, .tablewrap{ max-width:100%; }
+  body{ overflow-x:hidden; }
 
   .field{ display:flex; flex-direction:column; gap:7px; min-width:0; }
   .field label{
@@ -356,6 +358,9 @@
   }
   .results-meta{ font-size:13px; color:var(--text2); }
   .results-meta span{ color:var(--text); font-weight:600; }
+  .span-note{ color:var(--text2) !important; font-weight:400 !important; }
+  .span-note strong{ color:var(--text); font-weight:600; }
+  .dupwarn{ color:#B25F00 !important; font-weight:500 !important; }
   .action-btns{ display:flex; gap:8px; flex-wrap:wrap; }
   .action-btn{
     display:inline-flex; align-items:center; gap:7px;
@@ -416,7 +421,17 @@
     background:var(--sunken); border-radius:var(--r-md); padding:13px 15px;
     font-size:12.5px; line-height:1.55; color:var(--text2); margin-bottom:16px;
   }
-  .detected-cols{ display:flex; gap:7px; flex-wrap:wrap; }
+  .detected-cols{
+    display:flex; gap:7px; flex-wrap:wrap;
+    max-height:78px; overflow-y:auto; padding:2px 2px 4px;
+    -webkit-mask-image:linear-gradient(to bottom, #000 82%, transparent);
+            mask-image:linear-gradient(to bottom, #000 82%, transparent);
+  }
+  .detected-cols.open{ max-height:none; -webkit-mask-image:none; mask-image:none; }
+  .colcount{
+    font-size:12px; color:var(--text3); margin-top:6px; cursor:pointer; user-select:none;
+  }
+  .colcount:hover{ color:var(--indigo); }
   .col-pill{
     background:var(--sunken); color:var(--text2);
     border-radius:var(--r-pill); padding:5px 12px;
@@ -424,6 +439,17 @@
     transition:background .18s, color .18s;
   }
   .col-pill.mapped{ background:var(--teal-soft); color:var(--teal); font-weight:600; }
+  .col-pill.rangecol{ box-shadow:inset 0 0 0 1px var(--indigo); }
+  .maprow{ display:flex; gap:7px; align-items:center; }
+  .maprow select{ flex:1; min-width:0; }
+  .offbox{
+    flex:0 0 58px; height:40px; text-align:center; font-variant-numeric:tabular-nums;
+    background:var(--sunken); border:1px solid transparent; border-radius:var(--r-md);
+    font-size:13.5px; color:var(--text); padding:0 6px;
+  }
+  .offbox:focus{ outline:none; background:var(--surface); border-color:var(--indigo); box-shadow:0 0 0 3px rgba(94,92,230,.18); }
+  .map-sample.shifted{ color:var(--indigo); }
+  td.cell-shifted{ color:var(--indigo); }
 
   /* ---------- WIP notice ---------- */
   .wip{
@@ -441,6 +467,7 @@
     transition:border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease);
   }
   .dropzone:hover{ border-color:rgba(0,0,0,.22); background:#FCFCFD; }
+  .dropzone.busy{ opacity:.6; pointer-events:none; }
   .dropzone.over{ border-color:var(--primary); background:var(--primary-soft); transform:scale(1.005); }
   .dropzone b{ display:block; font-size:13.5px; font-weight:600; color:var(--text); margin-bottom:4px; }
   .dropzone span{ display:block; font-size:12.5px; color:var(--text3); }
@@ -491,6 +518,93 @@
   td.cell-raw{ color:#B25F00; background:#FFFBF2; }
   .srccol{ color:var(--text3); font-size:12.5px; font-variant-numeric:tabular-nums; }
 
+  /* ---------- shared small controls ---------- */
+  .seg{
+    display:inline-flex; gap:2px; padding:2px;
+    background:rgba(120,120,128,.12); border-radius:11px;
+  }
+  .seg button{
+    border:none; background:none; cursor:pointer; font-family:var(--sans);
+    font-size:13.5px; font-weight:500; color:var(--text2); padding:8px 18px; border-radius:9px;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .seg button:hover:not(.active){ color:var(--text); }
+  .seg button.active{
+    background:var(--surface); color:var(--indigo); font-weight:600;
+    box-shadow:0 1px 3px rgba(0,0,0,.10);
+  }
+  .btn{
+    border:none; background:var(--sunken); color:var(--text); cursor:pointer;
+    border-radius:var(--r-pill); padding:7px 15px; font-size:13px; font-weight:500;
+    font-family:var(--sans);
+    transition:background .18s var(--ease), transform .18s var(--ease), color .18s;
+  }
+  .btn:hover{ background:#EBEBED; }
+  .btn:active{ transform:scale(.97); }
+  .btn.ghost-danger{ color:var(--text2); }
+  .btn.ghost-danger:hover{ background:#FFEFEE; color:var(--red); }
+
+  .cal-hidden{
+    display:flex; align-items:center; gap:11px; flex-wrap:wrap;
+    background:#FFF8E6; border-radius:var(--r-md); padding:12px 14px; margin-bottom:14px;
+    font-size:12.5px; line-height:1.45; color:#7A5B12;
+  }
+  .cal-hidden svg{ width:15px; height:15px; flex:none; color:var(--amber); }
+  .cal-hidden > div{ flex:1; min-width:180px; }
+  .cal-hidden b{ color:#5E4409; }
+  .cal-hidden .btn{ background:#fff; }
+
+  /* ---------- calendar picker ---------- */
+  .legend-row{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:var(--r-md);
+    cursor:pointer; transition:background .15s, box-shadow .15s;
+  }
+  .legend-row:hover{ background:var(--sunken); }
+  .legend-row.active{ background:var(--indigo-soft); box-shadow:inset 0 0 0 1px var(--indigo); }
+  .swatch{
+    width:30px; height:30px; padding:0; border:none; border-radius:8px; flex:none;
+    background:none; cursor:pointer; box-shadow:0 0 0 1px rgba(0,0,0,.12) inset;
+  }
+  .swatch::-webkit-color-swatch-wrapper{ padding:0; }
+  .swatch::-webkit-color-swatch{ border:none; border-radius:8px; }
+  .legend-label{
+    flex:1; min-width:0; height:34px; background:var(--surface);
+    border:1px solid var(--border); border-radius:var(--r-sm); padding:0 11px; font-size:13.5px;
+  }
+  .legend-label:focus{ outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(94,92,230,.16); }
+  .legend-role{
+    flex:0 0 210px; height:34px; background:var(--surface);
+    border:1px solid var(--border); border-radius:var(--r-sm); padding:0 28px 0 10px; font-size:13px;
+  }
+  .painting{
+    flex:0 0 70px; font-size:10.5px; font-weight:700; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--text3); text-align:right; cursor:pointer;
+  }
+  .painting.on{ color:var(--indigo); }
+  .legend-del{
+    border:none; background:none; color:var(--text3); font-size:16px; line-height:1;
+    width:26px; height:26px; border-radius:50%; flex:none;
+  }
+  .legend-del:hover{ background:#FFEFEE; color:var(--red); }
+
+  .cal-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(196px,1fr)); gap:16px; }
+  .cal-month{ background:var(--sunken); border-radius:var(--r-md); padding:11px 11px 13px; }
+  .cal-mname{ font-size:12.5px; font-weight:600; text-align:center; margin-bottom:8px; color:var(--text); }
+  .cal-dow, .cal-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-dow span{ font-size:10px; color:var(--text3); text-align:center; font-weight:600; }
+  .cal-days{ margin-top:4px; }
+  .cal-pad{ height:24px; }
+  .cal-day{
+    height:24px; display:flex; align-items:center; justify-content:center;
+    font-size:11.5px; border-radius:6px; cursor:pointer; user-select:none;
+    color:var(--text2); font-variant-numeric:tabular-nums;
+    transition:background .1s, color .1s, transform .1s;
+  }
+  .cal-day:hover{ background:rgba(0,0,0,.07); }
+  .cal-day:focus-visible{ outline:2px solid var(--primary); outline-offset:1px; z-index:1; }
+  .cal-day.marked{ color:#1D1D1F; font-weight:600; box-shadow:inset 0 0 0 1px rgba(0,0,0,.10); }
+  .cal-day.marked:hover{ transform:scale(1.08); }
+
   /* ---------- toast ---------- */
   .toast{
     position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-14px);
@@ -507,6 +621,35 @@
   /* ---------- a11y + motion ---------- */
   :focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
   button:focus-visible{ outline-offset:3px; }
+  @media (max-width:640px){
+    .form-grid, .form-grid.three, .form-grid.four{ grid-template-columns:1fr; }
+    .app{ padding:26px 14px 0; }
+    .card{ padding:16px 14px; }
+    h1{ font-size:26px; }
+    .subtitle{ font-size:15px; }
+    /* segmented controls scroll instead of pushing the page wide */
+    .tab-nav, .seg, .naming-toggle, .cadence-toggle, .date-mode{
+      max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;
+    }
+    .tab-btn{ padding:8px 13px; font-size:13px; }
+    .seg button{ padding:8px 13px; }
+    /* legend becomes three tidy lines: [swatch][painting][x] / label / role */
+    .legend-row{ flex-wrap:wrap; gap:9px 8px; padding:12px 11px; }
+    .swatch{ order:0; }
+    .painting{ order:1; flex:0 0 auto; text-align:left; }
+    .legend-del{ order:2; margin-left:auto; }
+    .legend-label{ order:3; flex:none; width:100%; min-width:100%; }
+    .legend-role{ order:4; flex:none; width:100%; min-width:100%; }
+    .cal-grid{ grid-template-columns:1fr; }
+    .cal-day{ height:30px; font-size:12.5px; }   /* bigger tap target */
+    .maprow{ flex-wrap:wrap; }
+    .offbox{ flex:1 1 72px; }
+    .custom-seed-row{ flex-direction:column; align-items:stretch; }
+    .custom-seed-row .field{ flex:1 1 auto; }
+    .fill-btn{ width:100%; }
+    .slider-val{ min-width:70px; }
+  }
+
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; animation:none !important; }
   }
@@ -517,7 +660,7 @@
 <body>
 <div class="app">
   <div class="header">
-    <span class="badge">Merchant Ops</span>
+    <span class="badge">Merchant Ops</span><span class="vtag" title="Build date — quote this if you report a problem">v1.0</span>
     <h1>Merchant Schedule Generator</h1>
     <p class="subtitle">Generate merchant audit schedules, or convert a retailer’s own format into ours</p>
   </div>
@@ -547,6 +690,7 @@
           <div class="cadence-toggle">
             <button class="active" onclick="setCadence(7, this)">Weekly</button>
             <button onclick="setCadence(14, this)">Biweekly</button>
+            <button onclick="setCadence('month', this)">Monthly</button>
           </div>
         </div>
       </div>
@@ -559,8 +703,8 @@
       </div>
 
       <div class="naming-panel visible" id="panel-date">
-        <div class="naming-hint">Name = <strong>available_from</strong> date as <strong>Mon DD</strong></div>
-        <div class="preview-pill">Preview: <span>Dec 29</span> → <span>Jan 5</span> → <span>Jan 12</span></div>
+        <div class="naming-hint" id="date-name-hint">Name = <strong>available_from</strong> date as <strong>Mon DD</strong></div>
+        <div class="preview-pill" id="date-preview-pill">Preview: <span>Dec 29</span> → <span>Jan 5</span> → <span>Jan 12</span></div>
       </div>
 
       <div class="naming-panel" id="panel-prefix">
@@ -622,7 +766,7 @@
             <label>available_from</label>
           </div>
           <div class="datetime-combo">
-            <input type="date" id="avail-from" oninput="syncMirroredFields()" />
+            <input type="date" id="avail-from" oninput="updateDateNamePanel()" oninput="syncMirroredFields()" />
             <input type="time" id="avail-from-t" class="time-input" value="01:00" step="60" style="display:none;" oninput="syncMirroredFields()" />
           </div>
         </div>
@@ -677,7 +821,8 @@
 
     <div class="results-section" id="gen-results">
       <div class="results-header">
-        <div class="results-meta">Generated <span id="row-count">0</span> rows</div>
+        <div class="results-meta">Generated <span id="row-count">0</span> rows
+          <span id="gen-span" class="span-note"></span></div>
         <div class="action-btns">
           <button class="action-btn" onclick="copyCSV('gen')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -706,6 +851,88 @@
       especially the dates.</div>
     </div>
 
+    <div class="seg" id="clean-mode" style="margin-bottom:16px;">
+      <button class="active" onclick="setCleanMode('file', this)">Retailer file</button>
+      <button onclick="setCleanMode('cal', this)">Highlighted calendar</button>
+    </div>
+
+    <div id="clean-cal-side" style="display:none;">
+      <div class="card">
+        <div class="card-title"><span class="n">1</span> · What does each colour mean?</div>
+        <div class="naming-hint" style="margin-bottom:14px;">
+          Every calendar is different, so nothing is assumed — set this up each time one lands.
+          Match the swatch to their colour, say what it means, and choose whether it should create rows.
+        </div>
+        <div id="cal-legend"></div>
+        <div class="toolbar" style="margin:12px 0 0;">
+          <button class="btn" onclick="addLegendRow()">+ Add colour</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="n">2</span> · Which range do you need?</div>
+        <div class="form-grid three">
+          <div class="field">
+            <label>year</label>
+            <input type="number" id="cal-year" value="2027" min="2020" max="2099"
+                   oninput="clampYear(this); renderCalendar()">
+          </div>
+          <div class="field">
+            <label>from month</label>
+            <select id="cal-from-month" onchange="renderCalendar()"></select>
+          </div>
+          <div class="field">
+            <label>to month</label>
+            <select id="cal-to-month" onchange="renderCalendar()"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title-row">
+          <div class="card-title"><span class="n">3</span> · Mark their highlighted days</div>
+          <span class="counts" id="cal-count">No days marked yet</span>
+          <span class="spacer" style="flex:1"></span>
+          <button class="btn ghost-danger" onclick="clearCalendar()">Clear marks</button>
+        </div>
+        <div class="naming-hint" style="margin-bottom:12px;">
+          Click a day, or drag across a run. Clicking a day in its own colour again clears it.
+          Consecutive days become one period.
+        </div>
+        <div class="cal-hidden" id="cal-hidden" style="display:none"></div>
+        <div id="cal-grid" class="cal-grid"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="n">4</span> · Adjust &amp; build</div>
+        <div class="form-grid four">
+          <div class="field"><label>available_from ±</label><input type="number" id="cal-off-available_from" value="0" step="1"></div>
+          <div class="field"><label>available_to ±</label><input type="number" id="cal-off-available_to" value="0" step="1"></div>
+          <div class="field"><label>valid_from ±</label><input type="number" id="cal-off-valid_from" value="0" step="1"></div>
+          <div class="field"><label>valid_to ±</label><input type="number" id="cal-off-valid_to" value="0" step="1"></div>
+        </div>
+        <div class="form-grid" style="margin-top:14px;">
+          <div class="field">
+            <label>flyer_type_id</label>
+            <input type="text" id="cal-ftype" value="1000" placeholder="e.g. 1000">
+          </div>
+          <div class="field">
+            <label>split runs every <span class="lbl-hint">days — 0 keeps a run whole</span></label>
+            <input type="number" id="cal-split" value="7" min="0" step="1">
+          </div>
+        </div>
+        <div class="naming-hint" style="margin-top:10px;">
+          Back-to-back weekly ads look like one long block on a calendar. With <strong>7</strong> here, a
+          14-day block becomes two 7-day periods. Set <strong>0</strong> if a block really is one long ad.
+        </div>
+        <button class="clean-btn" style="margin-top:18px;" onclick="calBuild()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          Build rows from calendar
+        </button>
+      </div>
+    </div>
+
+    <div id="clean-file-side">
     <div class="card">
       <div class="card-title"><span class="n">1</span> · Retailer file</div>
 
@@ -736,6 +963,7 @@
     <div class="card" id="col-map-section" style="display:none;">
       <div class="card-title"><span class="n">2</span> · Map their columns to ours</div>
       <div class="detected-cols" id="detected-cols"></div>
+      <div class="colcount" id="colcount" onclick="document.getElementById('detected-cols').classList.toggle('open')"></div>
       <div class="col-mapper" id="col-mapper" style="margin-top:16px;"></div>
 
       <div class="card-title" style="margin-top:24px;"><span class="n">3</span> · Date format &amp; fallback</div>
@@ -754,11 +982,18 @@
           <input type="text" id="clean-ftype" placeholder="e.g. 1000" value="1000" />
         </div>
       </div>
+      <div class="naming-hint" style="margin-top:12px;">
+        The small <strong>±</strong> box beside each date shifts it by days — use <code>-2</code> on
+        <strong>available_from</strong> for an ad that previews two days early. A column holding
+        <code>7/9/26 - 7/22/26</code> is marked <strong>⇄</strong> and splits across the from/to pair automatically.
+      </div>
 
       <button class="clean-btn" style="margin-top:20px;" onclick="cleanAndRender()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
         Build standard CSV
       </button>
+    </div>
+
     </div>
 
     <div class="results-section" id="clean-results">
@@ -777,7 +1012,7 @@
       </div>
       <div class="table-wrap"><div class="table-scroll">
         <table><thead><tr>
-          <th>#</th><th>Their row</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th>
+          <th>#</th><th title="The row number in the retailer\u2019s own file">Their row</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th>
         </tr></thead><tbody id="clean-table-body"></tbody></table>
       </div></div>
     </div>
@@ -788,6 +1023,7 @@
 
 <script>
   let cadenceDays = 7;
+  let cadenceMonthly = false;
   let namingMode  = 'date';
   let includeTimes = false;
   let mirrorVF = false;
@@ -830,9 +1066,28 @@
   }
 
   function setCadence(days, btn) {
-    cadenceDays = days;
+    cadenceMonthly = (days === 'month');
+    if (!cadenceMonthly) cadenceDays = days;
     document.querySelectorAll('.cadence-toggle button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    updateDateNamePanel(); updatePrefixPreview(); updateCustomHint();
+  }
+
+  function updateDateNamePanel(){
+    const hint = document.getElementById('date-name-hint');
+    const pill = document.getElementById('date-preview-pill');
+    if (!hint || !pill) return;
+    hint.innerHTML = cadenceMonthly
+      ? 'Name = the month of <strong>available_from</strong> as <strong>Mon YYYY</strong> \u2014 a month-long period isn\u2019t named after one day'
+      : 'Name = <strong>available_from</strong> date as <strong>Mon DD</strong>';
+    const start = parseDateInput(document.getElementById('avail-from').value, null) || new Date();
+    const names = [0,1,2].map(i => {
+      const d = advance(start, i);
+      return cadenceMonthly
+        ? d.toLocaleDateString('en-US', { month:'short', year:'numeric' })
+        : d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    });
+    pill.innerHTML = 'Preview: <span>' + names.join('</span> \u2192 <span>') + '</span>';
   }
 
   function toggleTimes() {
@@ -950,7 +1205,11 @@
   }
 
   function getNameForRow(i, availFrom) {
-    if (namingMode === 'date') return availFrom.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (namingMode === 'date') {
+      return cadenceMonthly
+        ? availFrom.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })   // May 2027
+        : availFrom.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });   // May 1
+    }
     if (namingMode === 'prefix') {
       const p  = document.getElementById('prefix-text').value.trim() || 'Week';
       const s  = parseInt(document.getElementById('prefix-start').value) || 1;
@@ -984,6 +1243,17 @@
   function fmtOutput(d, hasTime) { return hasTime ? fmtDateTime(d) : fmtDateOnly(d); }
 
   function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+  // same day next month, clamped to the month's length (Jan 31 -> Feb 28)
+  function addMonths(d, n) {
+    const r = new Date(d), day = r.getDate();
+    r.setDate(1); r.setMonth(r.getMonth() + n);
+    r.setDate(Math.min(day, new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate()));
+    return r;
+  }
+  // advance by `steps` cadence periods, whatever cadence is selected
+  function advance(d, steps) {
+    return cadenceMonthly ? addMonths(d, steps) : addDays(d, steps * cadenceDays);
+  }
 
   function parseDateInput(dateStr, timeStr) {
     if (!dateStr) return null;
@@ -1030,8 +1300,9 @@
     if (!ftype || !af || !at || !vf || !vt) { showToast('Please fill in all date fields'); return; }
 
     genRows = [];
-    let cAF=new Date(af), cAT=new Date(at), cVF=new Date(vf), cVT=new Date(vt);
     for (let i=0; i<periods; i++) {
+      // always measured from the first period, so a 31st anchor returns to 31
+      const cAF=advance(af,i), cAT=advance(at,i), cVF=advance(vf,i), cVT=advance(vt,i);
       genRows.push({
         flyer_type_id: ftype,
         name: getNameForRow(i, cAF),
@@ -1040,11 +1311,11 @@
         valid_from:     fmtOutput(cVF, includeTimes),
         valid_to:       fmtOutput(cVT, includeTimes),
       });
-      cAF=addDays(cAF,cadenceDays); cAT=addDays(cAT,cadenceDays); cVF=addDays(cVF,cadenceDays); cVT=addDays(cVT,cadenceDays);
     }
     renderResultTable('gen-table-body', genRows);
     document.getElementById('gen-results').style.display = 'block';
     document.getElementById('row-count').textContent = genRows.length;
+    describeGenRows();
     document.getElementById('gen-results').scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
@@ -1076,18 +1347,53 @@
   function toCSVString(rows) {
     return [STD_COLS.join(','), ...rows.map(r => STD_COLS.map(c => `"${r[c] || ''}"`).join(','))].join('\n');
   }
+  function csvFileName(src, rows){
+    const stamp = new Date().toISOString().slice(0,10);
+    if (src === 'gen'){
+      const ft = (document.getElementById('ftype').value || '').trim().replace(/[^\w-]/g,'') || 'schedule';
+      const first = (rows[0] && rows[0].available_from || '').split(' ')[0].replace(/[^\d-]/g,'');
+      return `schedule_${ft}${first ? '_' + first : ''}_${rows.length}rows.csv`;
+    }
+    return `converted_schedule_${rows.length}rows_${stamp}.csv`;
+  }
   function downloadCSV(src) {
     const rows = src === 'gen' ? genRows : cleanRows;
+    if (!rows || !rows.length){ showToast('Nothing to download yet'); return; }
     const blob = new Blob([toCSVString(rows)], { type:'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href = url; a.download = 'merchant_audit_schedule.csv';
+    a.href = url; a.download = csvFileName(src, rows);
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url); showToast('CSV downloaded!');
+    URL.revokeObjectURL(url); showToast(rows.length + ' rows downloaded');
   }
   function copyCSV(src) {
     const rows = src === 'gen' ? genRows : cleanRows;
-    navigator.clipboard.writeText(toCSVString(rows)).then(() => showToast('Copied to clipboard!'));
+    if (!rows || !rows.length){ showToast('Nothing to copy yet'); return; }
+    const text = toCSVString(rows);
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text)
+        .then(() => showToast(rows.length + ' rows copied'))
+        .catch(() => showToast('Couldn\u2019t copy — use Download instead'));
+    } else {
+      showToast('Clipboard unavailable — use Download instead');
+    }
+  }
+
+  // a plain-language summary under the results, so the output can be sanity-checked
+  function describeGenRows(){
+    const el = document.getElementById('gen-span');
+    if (!el || !genRows.length) return;
+    const first = genRows[0].available_from.split(' ')[0];
+    const last  = genRows[genRows.length-1].available_to.split(' ')[0];
+    const pretty = s => { const p = s.split('-'); return p.length===3 ? `${p[0]} ${MONTH_NAMES_SHORT[+p[1]-1]} ${p[2]}` : s; };
+    const names = genRows.map(r => r.name);
+    const dupes = names.filter((n,i) => names.indexOf(n) !== i);
+    const uniqueDupes = [...new Set(dupes)];
+    el.innerHTML = `covering <strong>${pretty(first)}</strong> to <strong>${pretty(last)}</strong>` +
+      (uniqueDupes.length
+        ? ` · <span class="dupwarn">${uniqueDupes.length} repeated name${uniqueDupes.length>1?'s':''}
+            (${uniqueDupes.slice(0,2).map(d=>'&ldquo;'+d+'&rdquo;').join(', ')}${uniqueDupes.length>2?'…':''})</span>`
+        : '');
   }
 
   function showToast(msg) {
@@ -1145,6 +1451,11 @@
   })();
 
   function loadCleanFile(file){
+    const dz = document.getElementById('clean-drop');
+    if (dz) dz.classList.add('busy');
+    document.getElementById('clean-filemeta').innerHTML =
+      `<span class="fpill">Reading <b>${file.name}</b>\u2026</span>`;
+    const done = () => { if (dz) dz.classList.remove('busy'); };
     const reader = new FileReader();
     reader.onload = function(ev){
       try {
@@ -1157,11 +1468,16 @@
           `<span class="fpill"><b>${file.name}</b> · ${fmtBytes(file.size)}` +
           (sheets.length > 1 ? ` · ${sheets.length} sheets` : '') + `</span>`;
         onSheetPick();
+        done();
         showToast('Loaded ' + file.name);
       } catch(err){
-        showToast('Couldn\u2019t read that file');
+        done();
+        document.getElementById('clean-filemeta').innerHTML =
+          `<span class="fpill" style="background:#FFEFEE;color:var(--red-deep)">Couldn\u2019t read <b>${file.name}</b></span>`;
+        showToast('Couldn\u2019t read that file — is it a real .xlsx or .csv?');
       }
     };
+    reader.onerror = () => { done(); showToast('Couldn\u2019t read that file'); };
     reader.readAsArrayBuffer(file);
   }
 
@@ -1230,7 +1546,7 @@
   }
 
   /* ---------- mapping ---------- */
-  function autoPick(target, headers){
+  function autoPickScored(target, headers){
     const syns = MAP_SYNONYMS[target] || [];
     let best = '', bestScore = 0;
     headers.forEach(h => {
@@ -1240,11 +1556,26 @@
       if (n === norm(target)) score = 100;
       else syns.forEach(s => {
         if (n === s) score = Math.max(score, 90);
-        else if (n.indexOf(s) !== -1 || s.indexOf(n) !== -1) score = Math.max(score, 40 + Math.min(s.length, n.length));
+        // a long production-milestone header that merely contains a short word is a weak signal
+        else if (n.indexOf(s) !== -1 || s.indexOf(n) !== -1){
+          const weak = 40 + Math.min(s.length, n.length) - Math.floor(n.length / 6);
+          score = Math.max(score, Math.max(20, weak));
+        }
       });
       if (score > bestScore){ bestScore = score; best = h; }
     });
-    return bestScore >= 40 ? best : '';
+    return { col: bestScore >= 45 ? best : '', score: bestScore };
+  }
+  function autoPick(target, headers){ return autoPickScored(target, headers).col; }
+
+  // does this column hold "date - date" cells?
+  function isRangeColumn(header){
+    const rows = cleanDataRows();
+    for (const r of rows){
+      const v = cellAt(r, header);
+      if (String(v).trim() !== '') return !!splitRange(v);
+    }
+    return false;
   }
 
   function rebuildMapping(){
@@ -1252,16 +1583,35 @@
     if (!headers.length){ document.getElementById('col-map-section').style.display = 'none'; return; }
 
     document.getElementById('detected-cols').innerHTML =
-      headers.map(h => `<span class="col-pill" id="pill-${h.replace(/\W/g,'_')}">${h}</span>`).join('');
+      headers.map(h => {
+        const rng = isRangeColumn(h);
+        return `<span class="col-pill${rng ? ' rangecol' : ''}" id="pill-${h.replace(/\W/g,'_')}">${h}${rng ? ' ⇄' : ''}</span>`;
+      }).join('');
 
+    const rangeCols = headers.filter(isRangeColumn);
+    const cc = document.getElementById('colcount');
+    if (cc) cc.textContent = headers.length + ' columns in their file — tap to show all';
     document.getElementById('col-mapper').innerHTML = MAP_TARGETS.map(t => {
-      const pick = autoPick(t, headers);
+      const scored = autoPickScored(t, headers);
+      let pick = scored.col;
+      const isDatePair = /^(available|valid)_(from|to)$/.test(t);
+      // one cell holding the whole run beats a weak guess at a production-milestone column
+      if (isDatePair && rangeCols.length === 1 && scored.score < 90) pick = rangeCols[0];
+      if (!pick && /_to$/.test(t)) {
+        const fromPick = autoPick(t.replace(/_to$/, '_from'), headers);
+        if (fromPick && rangeCols.indexOf(fromPick) !== -1) pick = fromPick;
+      }
       const opts = ['<option value="">(skip)</option>'].concat(
         headers.map(h => `<option value="${h}"${h === pick ? ' selected' : ''}>${h}</option>`)
       ).join('');
+      const isDate = t !== 'name' && t !== 'flyer_type_id';
       return `<div class="field">
         <label>→ ${MAP_LABELS[t]}</label>
-        <select id="map-${t}" onchange="onMapChange()">${opts}</select>
+        <div class="maprow">
+          <select id="map-${t}" onchange="onMapChange()">${opts}</select>
+          ${isDate ? `<input type="number" class="offbox" id="off-${t}" value="0" step="1"
+                        title="Shift this date by days — e.g. -2 for a preview" oninput="onMapChange()">` : ''}
+        </div>
         <div class="map-sample" id="sample-${t}"></div>
       </div>`;
     }).join('');
@@ -1288,9 +1638,15 @@
       if (t === 'name' || t === 'flyer_type_id'){
         el.className = 'map-sample ok'; el.textContent = 'e.g. ' + String(val).slice(0,30);
       } else {
-        const p = parseRetailerDate(val);
+        const half = rangeHalf(val, /_to$/.test(t) ? 'to' : 'from');
+        const p = parseRetailerDate(half);
+        const off = dateOffset(t);
+        const d = (p.date && off) ? addDaysClean(p.date, off) : p.date;
         el.className = 'map-sample ' + (p.date ? 'ok' : 'warn');
-        el.textContent = p.date ? `e.g. ${val} → ${fmtOutput(p.date, p.hasTime)}` : `e.g. ${val} → can\u2019t read as a date`;
+        if (!p.date){ el.textContent = `e.g. ${val} → can\u2019t read as a date`; return; }
+        const rangeNote = (half !== String(val).trim()) ? ' (range split)' : '';
+        const offNote = off ? ` ${off > 0 ? '+' : ''}${off}d` : '';
+        el.textContent = `e.g. ${val}${rangeNote} →${offNote ? offNote + ' →' : ''} ${fmtOutput(d, p.hasTime)}`;
       }
     });
   }
@@ -1304,6 +1660,30 @@
         if (pill) pill.classList.add('mapped');
       }
     });
+  }
+
+  function addDaysClean(d, n){ const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+  function dateOffset(key){
+    const el = document.getElementById('off-' + key);
+    const v = el ? parseInt(el.value, 10) : 0;
+    return isNaN(v) ? 0 : v;
+  }
+
+  /* ---------- a single cell holding "7/9/26 - 7/22/26" ---------- */
+  function splitRange(raw){
+    const s = String(raw == null ? '' : raw).trim();
+    if (!s) return null;
+    // en/em dash, hyphen, "to", or "thru" between two date-looking halves
+    const m = s.match(/^(.{4,}?)\s*(?:-|\u2013|\u2014|to|thru|through)\s*(.{4,})$/i);
+    if (!m) return null;
+    const a = parseRetailerDate(m[1]), b = parseRetailerDate(m[2]);
+    if (a.date && b.date) return { a:m[1].trim(), b:m[2].trim() };
+    return null;
+  }
+  function rangeHalf(raw, which){
+    const r = splitRange(raw);
+    if (!r) return raw;
+    return which === 'to' ? r.b : r.a;
   }
 
   /* ---------- date handling (clean tab only) ---------- */
@@ -1445,17 +1825,21 @@
       const ftCol = getMap('flyer_type_id');
       const ftRaw = ftCol ? String(cellAt(r, ftCol)).trim() : '';
       const nmCol = getMap('name');
-      const name  = nmCol ? String(cellAt(r, nmCol)).trim() : '';
+      const name  = nmCol ? String(cellAt(r, nmCol)).replace(/\s*\n+\s*/g, ' ').trim() : '';
       if (nmCol && !name) flags.push('name');
 
       const field = key => {
         const col = getMap(key);
         if (!col) return { v:'', flag:'unmapped' };
-        const raw = String(cellAt(r, col)).trim();
+        let raw = String(cellAt(r, col)).trim();
         if (!raw) { flags.push(key); return { v:'', flag:'blank' }; }
+        // one cell holding a range feeds the _from half to from-fields and the _to half to to-fields
+        raw = rangeHalf(raw, /_to$/.test(key) ? 'to' : 'from');
         const p = parseRetailerDate(raw);
         if (!p.date){ flags.push(key); return { v:raw, flag:'raw' }; }   // keep their value, never blank it
-        return { v:fmtOutput(p.date, p.hasTime), flag:'' };
+        const off = dateOffset(key);   // note: a shift is intentional, not a problem
+        const d = off ? addDaysClean(p.date, off) : p.date;
+        return { v:fmtOutput(d, p.hasTime), flag: off ? 'shifted' : '' };
       };
 
       const af = field('available_from'), at = field('available_to');
@@ -1476,7 +1860,6 @@
     renderCleanTable();
 
     const attention = cleanRows.filter(r => r._needs).length;
-    document.getElementById('clean-row-count').textContent = cleanRows.length;
     document.getElementById('parity').innerHTML =
       `<span class="${attention ? 'parity-warn' : 'parity-ok'}">${rows.length} rows in → ${cleanRows.length} rows out</span>` +
       (attention ? ` · ${attention} need a look` : ' · all mapped cleanly') +
@@ -1493,6 +1876,7 @@
         if (f === 'raw')      return `<td class="cell-raw" title="Couldn't read as a date — their original value kept">${r[key]}</td>`;
         if (f === 'blank')    return `<td class="cell-missing" title="Empty in their file">empty</td>`;
         if (f === 'unmapped') return `<td class="cell-missing" title="No column mapped">—</td>`;
+        if (f === 'shifted')  return `<td class="cell-shifted" title="Shifted by your ± offset">${r[key]}</td>`;
         return `<td>${r[key]}</td>`;
       };
       return `<tr>
@@ -1555,7 +1939,7 @@
           label:`week-ending date — <strong>${prefix.toUpperCase()}</strong> + ${styleYear===4?'MMDD':styleYear===6?'MMDDYY':'MMDDYYYY'}, rolling with your cadence`,
           needsStep:false,
           render(i){
-            const d = addDays(anchor, i * cadenceDays);
+            const d = advance(anchor, i);
             let out = pad2(d.getMonth()+1) + pad2(d.getDate());
             if (styleYear === 6) out += String(d.getFullYear()).slice(2);
             if (styleYear === 8) out += String(d.getFullYear());
@@ -1609,7 +1993,7 @@
           label:`numeric month${sep}day (read ${order}) — rolls into the next month on the calendar`,
           needsStep:false,
           render(i){
-            const d = addDays(anchor, i * cadenceDays);
+            const d = advance(anchor, i);
             const M = padA ? pad2(d.getMonth()+1) : String(d.getMonth()+1);
             const D = padB ? pad2(d.getDate())    : String(d.getDate());
             return (order === 'day first') ? (D + sep + M) : (M + sep + D);
@@ -1631,9 +2015,29 @@
         label:'month + day — rolls onto real calendar dates, so it can never produce an invalid day',
         needsStep:false,
         render(i){
-          const d = addDays(anchor, i * cadenceDays);
+          const d = advance(anchor, i);
           const D = padDay ? pad2(d.getDate()) : String(d.getDate());
           return (pre || '') + styleMonth(d.getMonth(), monthWord) + ' ' + D + (post || '');
+        }
+      };
+    }
+
+    // ---- 4b. Bare month name (+ optional year / suffix): "May", "May 2027", "May Flyer" ----
+    m = s.match(/^(.*?)\b([A-Za-z]{3,9})\.?(\s*)(\d{4})?(\s*[A-Za-z][A-Za-z .&'-]*)?$/);
+    if (m && detectMonthIndex(m[2]) !== -1 && !/\s\d{1,2}\s*$/.test(s)) {
+      const pre = m[1], monthWord = m[2], gap = m[3] || ' ', yr = m[4], suffix = m[5] || '';
+      const mIdx = detectMonthIndex(monthWord);
+      const baseYear = yr ? +yr : (parseDateInput(document.getElementById('avail-from').value, null) || new Date()).getFullYear();
+      return {
+        kind:'monthonly',
+        title:'month name',
+        label:'month name — steps one month per row' + (yr ? ', carrying the year' : ''),
+        needsStep:false,
+        render(i){
+          const d = new Date(baseYear, mIdx + i, 1);
+          const tail = yr ? gap + d.getFullYear() : '';
+          return (pre || '') + styleMonth(d.getMonth(), monthWord) + tail +
+                 (!yr && suffix && !/^\s/.test(suffix) ? gap : '') + suffix;
         }
       };
     }
@@ -1668,7 +2072,7 @@
     const n = parseInt(document.getElementById('slider').value) || 1;
     const start = parseDateInput(document.getElementById('avail-from').value, null);
     const out = [];
-    for (let i = 0; i < n; i++) out.push(start ? addDays(start, i * cadenceDays) : null);
+    for (let i = 0; i < n; i++) out.push(start ? advance(start, i) : null);
     return out;
   }
 
@@ -1706,6 +2110,326 @@
       `<div class="pat-preview"><span>${p[0]}</span> \u2192 <span>${p[1]}</span> \u2192 <span>${p[2]}</span> \u2192 <span>${p[3]}</span> \u2026</div>`;
   }
 
+
+  /* ============================================================
+     HIGHLIGHTED CALENDAR MODE
+     For retailers (e.g. Tropicazoo) who send a colour-coded
+     calendar instead of a table. Nothing is assumed about what a
+     colour means — the legend is defined per file, every time.
+     ============================================================ */
+  const CAL_SWATCHES = ['#E8D2A0','#E23B3B','#A8BFA0','#7FB2E5','#C9A0E8','#F0A860'];
+  let calLegend = [];      // [{ id, colour, label, role }]
+  let calMarks  = {};      // { 'YYYY-MM-DD': legendId }
+  let calActive = null;    // legend id currently being painted
+  let calDragging = false, calDragMode = 'set';
+
+  function calNextId(){ return 'c' + (Date.now() % 100000) + Math.floor(Math.random()*99); }
+
+  function addLegendRow(colour, label){
+    if (calLegend.length >= 6) { showToast('Six colours is plenty'); return; }
+    const used = calLegend.map(l => l.colour);
+    const c = colour || CAL_SWATCHES.find(s => used.indexOf(s) === -1) || CAL_SWATCHES[0];
+    calLegend.push({ id: calNextId(), colour: c, label: label || '', role: '' });
+    renderLegend(); renderCalendar();
+  }
+  function removeLegendRow(id){
+    calLegend = calLegend.filter(l => l.id !== id);
+    Object.keys(calMarks).forEach(k => { if (calMarks[k] === id) delete calMarks[k]; });
+    if (calActive === id) calActive = calLegend.length ? calLegend[0].id : null;
+    renderLegend(); renderCalendar();
+  }
+  function setLegendField(id, field, val){
+    const l = calLegend.find(x => x.id === id);
+    if (l) l[field] = val;
+    if (field === 'colour') recolourMarks();   // nothing else needs a re-render —
+                                               // rebuilding would interrupt typing
+  }
+  function recolourMarks(){
+    document.querySelectorAll('.cal-day.marked').forEach(el => {
+      const id = calMarks[el.dataset.k];
+      if (id) el.style.background = colourOf(id);
+    });
+  }
+  function setActiveLegend(id){
+    if (calActive === id) return;
+    calActive = id;
+    document.querySelectorAll('#cal-legend .legend-row').forEach(row => {
+      const on = row.dataset.id === id;
+      row.classList.toggle('active', on);
+      const p = row.querySelector('.painting');
+      if (p){ p.classList.toggle('on', on); p.textContent = on ? '\u25c9 painting' : '\u25cb'; }
+    });
+  }
+
+  function renderLegend(){
+    const host = document.getElementById('cal-legend');
+    if (!host) return;
+    if (!calLegend.length){
+      host.innerHTML = '<div class="empty" style="padding:18px">No colours yet — add the ones used on their calendar.</div>';
+      return;
+    }
+    host.innerHTML = calLegend.map(l => `
+      <div class="legend-row${calActive === l.id ? ' active' : ''}" data-id="${l.id}" onclick="setActiveLegend('${l.id}')">
+        <input type="color" class="swatch" value="${l.colour}" title="Match their colour"
+               onclick="event.stopPropagation()" oninput="setLegendField('${l.id}','colour',this.value)">
+        <input type="text" class="legend-label" placeholder="what this colour means (e.g. Ad period)"
+               value="${l.label.replace(/"/g,'&quot;')}"
+               onfocus="setActiveLegend('${l.id}')" oninput="setLegendField('${l.id}','label',this.value)">
+        <select class="legend-role" onfocus="setActiveLegend('${l.id}')" onchange="setLegendField('${l.id}','role',this.value)">
+          <option value=""${l.role===''?' selected':''}>choose…</option>
+          <option value="period"${l.role==='period'?' selected':''}>Ad period → makes rows</option>
+          <option value="ignore"${l.role==='ignore'?' selected':''}>Reference only — no rows</option>
+        </select>
+        <span class="painting${calActive === l.id ? ' on' : ''}">${calActive === l.id ? '\u25c9 painting' : '\u25cb'}</span>
+        <button class="legend-del" title="Remove this colour" aria-label="Remove this colour"
+                onclick="event.stopPropagation();removeLegendRow('${l.id}')">&times;</button>
+      </div>`).join('');
+  }
+
+  /* ---------- the clickable calendar ---------- */
+  function clampYear(el){
+    const v = parseInt(el.value, 10);
+    if (!isNaN(v) && String(el.value).length >= 4){
+      if (v < 2020) el.value = 2020;
+      if (v > 2099) el.value = 2099;
+    }
+  }
+  function calRangeMonths(){
+    const y  = parseInt(document.getElementById('cal-year').value, 10) || new Date().getFullYear();
+    const m1 = parseInt(document.getElementById('cal-from-month').value, 10) || 0;
+    const m2 = parseInt(document.getElementById('cal-to-month').value, 10);
+    const out = [];
+    for (let m = m1; m <= (isNaN(m2) ? 11 : m2); m++) out.push({ y: y + Math.floor(m/12), m: m % 12 });
+    return out;
+  }
+  function keyOf(y, m, d){ return y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0'); }
+  function colourOf(id){ const l = calLegend.find(x => x.id === id); return l ? l.colour : 'transparent'; }
+
+  // which marked days fall outside the months currently on screen?
+  function hiddenMarks(){
+    const shown = {};
+    calRangeMonths().forEach(({y,m}) => { shown[y + '-' + String(m+1).padStart(2,'0')] = 1; });
+    return Object.keys(calMarks).filter(k => !shown[k.slice(0,7)]);
+  }
+  function renderHiddenNotice(){
+    const el = document.getElementById('cal-hidden');
+    if (!el) return;
+    const hid = hiddenMarks();
+    if (!hid.length){ el.style.display = 'none'; el.innerHTML = ''; return; }
+    const first = hid.slice().sort()[0], last = hid.slice().sort()[hid.length-1];
+    el.style.display = 'flex';
+    el.innerHTML =
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+       <div><b>${hid.length} marked day${hid.length>1?'s':''} outside the months shown</b> (${first} to ${last}).
+       They will still be built into rows.</div>
+       <button class="btn" onclick="showHiddenMarks()">Show them</button>
+       <button class="btn ghost-danger" onclick="clearHiddenMarks()">Clear them</button>`;
+  }
+  function showHiddenMarks(){
+    const all = Object.keys(calMarks).sort();
+    if (!all.length) return;
+    const a = all[0], z = all[all.length-1];
+    const y1 = +a.slice(0,4), y2 = +z.slice(0,4);
+    document.getElementById('cal-year').value = y1;
+    document.getElementById('cal-from-month').value = String(+a.slice(5,7) - 1);
+    // a span crossing into a later year is shown as extra months past December
+    const toMonth = (y2 - y1) * 12 + (+z.slice(5,7) - 1);
+    document.getElementById('cal-to-month').value = String(Math.min(11, toMonth));
+    if (toMonth > 11) showToast('Marks span more than a year — showing from ' + a);
+    renderCalendar();
+  }
+  function clearHiddenMarks(){
+    const hid = hiddenMarks();
+    hid.forEach(k => delete calMarks[k]);
+    renderCalendar();
+    showToast(hid.length + ' hidden mark' + (hid.length>1?'s':'') + ' cleared');
+  }
+
+  function renderCalendar(){
+    const host = document.getElementById('cal-grid');
+    if (!host) return;
+    const months = calRangeMonths();
+    host.innerHTML = months.map(({y,m}) => {
+      const first = new Date(y, m, 1).getDay();
+      const days  = new Date(y, m+1, 0).getDate();
+      let cells = '';
+      for (let i = 0; i < first; i++) cells += '<span class="cal-pad"></span>';
+      for (let d = 1; d <= days; d++){
+        const k = keyOf(y,m,d);
+        const mark = calMarks[k];
+        const style = mark ? ` style="background:${colourOf(mark)}"` : '';
+        const lbl = new Date(y,m,d).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+        cells += `<span class="cal-day${mark ? ' marked' : ''}"${style} data-k="${k}" tabindex="0"`+
+                 ` role="button" aria-pressed="${mark ? 'true':'false'}" aria-label="${lbl}">${d}</span>`;
+      }
+      return `<div class="cal-month">
+        <div class="cal-mname">${MONTH_NAMES_LONG[m]} ${y}</div>
+        <div class="cal-dow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+        <div class="cal-days">${cells}</div>
+      </div>`;
+    }).join('');
+    updateCalCount();
+    renderHiddenNotice();
+  }
+
+  function updateCalCount(){
+    const n = Object.keys(calMarks).length;
+    const cnt = document.getElementById('cal-count');
+    if (cnt) cnt.textContent = n ? n + ' day' + (n>1?'s':'') + ' marked' : 'No days marked yet';
+  }
+  function paintDay(k, el){
+    if (!calActive){ showToast('Pick a colour on the left first'); return; }
+    if (calDragMode === 'clear'){
+      delete calMarks[k];
+      if (el){ el.classList.remove('marked'); el.style.background = ''; }
+    } else {
+      calMarks[k] = calActive;
+      if (el){ el.classList.add('marked'); el.style.background = colourOf(calActive); }
+    }
+    if (el) el.setAttribute('aria-pressed', calMarks[k] ? 'true' : 'false');
+    updateCalCount();
+  }
+
+  (function wireCalendar(){
+    const host = document.getElementById('cal-grid');
+    if (!host) return;
+    host.addEventListener('mousedown', e => {
+      const el = e.target.closest('.cal-day'); if (!el) return;
+      e.preventDefault();
+      calDragging = true;
+      calDragMode = (calMarks[el.dataset.k] === calActive) ? 'clear' : 'set';
+      paintDay(el.dataset.k, el);
+    });
+    host.addEventListener('mouseover', e => {
+      if (!calDragging) return;
+      const el = e.target.closest('.cal-day'); if (!el) return;
+      paintDay(el.dataset.k, el);
+    });
+    document.addEventListener('mouseup', () => { calDragging = false; });
+    host.addEventListener('keydown', e => {
+      const el = e.target.closest('.cal-day'); if (!el) return;
+      if (e.key === ' ' || e.key === 'Enter'){
+        e.preventDefault();
+        calDragMode = (calMarks[el.dataset.k] === calActive) ? 'clear' : 'set';
+        paintDay(el.dataset.k, el);
+        return;
+      }
+      const step = { ArrowRight:1, ArrowLeft:-1, ArrowDown:7, ArrowUp:-7 }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      const all = Array.from(host.querySelectorAll('.cal-day'));
+      const i = all.indexOf(el);
+      const next = all[i + step];
+      if (next) next.focus();
+    });
+    // touch: tap to toggle
+    host.addEventListener('click', e => {
+      const el = e.target.closest('.cal-day');
+      if (el && !calDragging) { /* mousedown already handled it on desktop */ }
+    });
+  })();
+
+  function clearCalendar(){
+    if (!Object.keys(calMarks).length) return;
+    calMarks = {}; renderCalendar(); showToast('Calendar cleared');
+  }
+
+  /* ---------- turn marked bands into schedule rows ---------- */
+  function calBuild(){
+    const periods = calLegend.filter(l => l.role === 'period');
+    if (!calLegend.length) { showToast('Add the calendar\u2019s colours first'); return; }
+    if (!periods.length)   { showToast('Set at least one colour to \u201cAd period\u201d'); return; }
+    const unset = calLegend.filter(l => !l.role);
+    if (unset.length)      { showToast('Say what every colour means first'); return; }
+    if (!Object.keys(calMarks).length) { showToast('Mark the ad days on the calendar'); return; }
+
+    const ftype = document.getElementById('cal-ftype').value.trim() || '1000';
+    const rows = [];
+
+    periods.forEach(l => {
+      const keys = Object.keys(calMarks).filter(k => calMarks[k] === l.id).sort();
+      let band = [];
+      const splitEvery = Math.max(0, parseInt((document.getElementById('cal-split')||{}).value, 10) || 0);
+      const flush = () => {
+        if (!band.length) return;
+        if (splitEvery > 0 && band.length > splitEvery){
+          const whole = band;
+          for (let i = 0; i < whole.length; i += splitEvery){
+            band = whole.slice(i, i + splitEvery);
+            emit();
+          }
+          band = [];
+          return;
+        }
+        emit();
+      };
+      const emit = () => {
+        if (!band.length) return;
+        const a = new Date(band[0] + 'T00:00:00');
+        const b = new Date(band[band.length-1] + 'T00:00:00');
+        const off = k => { const el = document.getElementById('cal-off-' + k); const v = el ? parseInt(el.value,10) : 0; return isNaN(v) ? 0 : v; };
+        const af = addDaysClean(a, off('available_from'));
+        const at = addDaysClean(b, off('available_to'));
+        const vf = addDaysClean(a, off('valid_from'));
+        const vt = addDaysClean(b, off('valid_to'));
+        const label = (l.label || '').trim();
+        const stamp = a.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+        rows.push({
+          flyer_type_id: ftype,
+          name: label ? `${label} ${stamp}` : stamp,
+          available_from: fmtOutput(af, false), available_to: fmtOutput(at, false),
+          valid_from:     fmtOutput(vf, false), valid_to:     fmtOutput(vt, false),
+          _src: `${band.length} day${band.length>1?'s':''}`,
+          _flags: {}, _needs: false
+        });
+      };
+      keys.forEach(k => {
+        if (!band.length){ band.push(k); return; }
+        const prev = new Date(band[band.length-1] + 'T00:00:00');
+        const cur  = new Date(k + 'T00:00:00');
+        if ((cur - prev) === 86400000) band.push(k);   // consecutive calendar day
+        else { flush(); band.push(k); }
+      });
+      flush();
+    });
+
+    rows.sort((x,y) => x.available_from.split('-').reverse().join('') > y.available_from.split('-').reverse().join('') ? 1 : -1);
+    cleanRows = rows;
+    renderCleanTable();
+    const hid = hiddenMarks().length;
+    document.getElementById('parity').innerHTML =
+      `<span class="${hid ? 'parity-warn' : 'parity-ok'}">${rows.length} period${rows.length>1?'s':''} from ${Object.keys(calMarks).length} marked days</span>` +
+      ` · ${periods.length} colour${periods.length>1?'s':''} treated as ad periods` +
+      (hid ? ` · includes ${hid} day${hid>1?'s':''} not currently on screen` : '');
+    document.getElementById('clean-results').style.display = 'block';
+    document.getElementById('clean-results').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  /* ---------- input mode switch ---------- */
+  function setCleanMode(mode, btn){
+    document.querySelectorAll('#clean-mode button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('clean-file-side').style.display = mode === 'file' ? '' : 'none';
+    document.getElementById('col-map-section').style.display =
+      (mode === 'file' && cleanGrid.length) ? 'block' : 'none';
+    document.getElementById('clean-cal-side').style.display = mode === 'cal' ? '' : 'none';
+    document.getElementById('clean-results').style.display = 'none';
+    if (mode === 'cal' && !calLegend.length){
+      // seed the colours Tropicazoo uses, but leave every meaning blank on purpose
+      addLegendRow('#E8D2A0',''); addLegendRow('#E23B3B',''); addLegendRow('#A8BFA0','');
+      calActive = calLegend[0].id;
+      document.getElementById('cal-year').value = new Date().getFullYear() + 1;
+      renderLegend(); renderCalendar();
+    }
+  }
+
+
+  (function initCalMonths(){
+    const f = document.getElementById('cal-from-month'), t = document.getElementById('cal-to-month');
+    if (!f || !t) return;
+    const opts = MONTH_NAMES_LONG.map((m,i) => `<option value="${i}">${m}</option>`).join('');
+    f.innerHTML = opts; t.innerHTML = opts; f.value = '0'; t.value = '11';
+  })();
 </script>
 </body>
 </html>
