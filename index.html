@@ -440,13 +440,50 @@
   }
   .col-pill.mapped{ background:var(--teal-soft); color:var(--teal); font-weight:600; }
   .col-pill.rangecol{ box-shadow:inset 0 0 0 1px var(--indigo); }
-  .maprow{ display:flex; gap:7px; align-items:center; }
-  .maprow select{ flex:1; min-width:0; }
-  .offbox{
-    flex:0 0 58px; height:40px; text-align:center; font-variant-numeric:tabular-nums;
-    background:var(--sunken); border:1px solid transparent; border-radius:var(--r-md);
-    font-size:13.5px; color:var(--text); padding:0 6px;
+  .maplist{ background:var(--sunken); border-radius:var(--r-md); padding:4px 12px 10px; }
+  .maphead, .maprow{
+    display:grid; grid-template-columns:168px 1fr 86px; gap:14px; align-items:start;
   }
+  .maphead{
+    padding:10px 0 8px; border-bottom:1px solid var(--border);
+    font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text3);
+  }
+  .maphead > div:last-child{ text-align:center; }
+  .maprow{ padding:11px 0; border-bottom:1px solid var(--border); }
+  #col-mapper .maprow:last-child{ border-bottom:none; }
+  .mapfield{
+    font-size:13.5px; font-weight:600; color:var(--text); padding-top:10px;
+    overflow-wrap:anywhere;
+  }
+  .mapfield::before{ content:'→ '; color:var(--text3); font-weight:400; }
+  .mapsel{ min-width:0; }
+  .mapsel select{
+    width:100%; height:40px;
+    font-family:var(--sans); font-size:14px; color:var(--text); letter-spacing:-.01em;
+    background-color:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+    padding:0 34px 0 12px; cursor:pointer;
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.7L6 7.8l3-3.1' fill='none' stroke='%236E6E73' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center; background-size:12px;
+    transition:border-color .15s, box-shadow .15s;
+    text-overflow:ellipsis;
+  }
+  .mapsel select:focus{
+    outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(0,113,227,.16);
+  }
+  .mapsel .map-sample{ margin-top:6px; }
+  .mapshift{ display:flex; justify-content:center; padding-top:0; }
+  .noshift{ color:var(--text3); font-size:13px; padding-top:10px; }
+  .offbox{
+    width:72px; height:40px; text-align:center; font-variant-numeric:tabular-nums;
+    background-color:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+    font-size:13.5px; font-weight:500; color:var(--text); padding:0 4px;
+    appearance:textfield; -moz-appearance:textfield;
+  }
+  .offbox::-webkit-outer-spin-button, .offbox::-webkit-inner-spin-button{
+    -webkit-appearance:none; margin:0;
+  }
+  .offbox:focus{ outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(94,92,230,.18); }
   .offbox:focus{ outline:none; background:var(--surface); border-color:var(--indigo); box-shadow:0 0 0 3px rgba(94,92,230,.18); }
   .map-sample.shifted{ color:var(--indigo); }
   td.cell-shifted{ color:var(--indigo); }
@@ -517,6 +554,41 @@
   td.cell-missing, .cell-missing{ color:#B25F00; background:#FFFBF2; font-style:italic; font-weight:400; }
   td.cell-raw{ color:#B25F00; background:#FFFBF2; }
   .srccol{ color:var(--text3); font-size:12.5px; font-variant-numeric:tabular-nums; }
+
+  /* ---------- row actions ---------- */
+  th.actcol, td.actcol{ width:46px; text-align:center; padding:4px; }
+  .rowdel{
+    border:none; background:none; color:var(--text3); font-size:15px; line-height:1;
+    width:28px; height:28px; border-radius:50%; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition:color .15s, background .15s;
+  }
+  .rowdel:hover{ color:var(--red); background:#FFEFEE; }
+  .rowdel:focus-visible{ outline:2px solid var(--primary); outline-offset:1px; }
+
+  /* ---------- editable result cells ---------- */
+  .cellbox{
+    width:100%; min-width:94px; border:1px solid var(--border); border-radius:var(--r-sm);
+    padding:6px 8px; font-size:12.5px; font-family:var(--sans); color:var(--text);
+    background:var(--surface); font-variant-numeric:tabular-nums;
+  }
+  .cellbox.strong{ font-weight:600; min-width:140px; }
+  /* in edit mode the cells carry the padding, so the table itself tightens up */
+  tbody.editing td{ padding:5px 6px; vertical-align:middle; }
+  tbody.editing td.row-num, tbody.editing td.srccol{ padding:5px 10px; }
+  tbody.editing tr:hover{ background:transparent; }
+  .table-wrap.editing{ box-shadow:var(--shadow-md), inset 0 0 0 1.5px var(--primary); }
+  .editbar{
+    display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+    background:var(--primary-soft); color:var(--primary);
+    border-radius:var(--r-md); padding:10px 13px; margin-bottom:12px;
+    font-size:12.5px; font-weight:500;
+  }
+  .editbar svg{ width:14px; height:14px; flex:none; }
+  .editbar span{ flex:1; min-width:150px; }
+  .cellbox:focus{ outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,113,227,.16); }
+  .cellbox:placeholder-shown{ border-style:dashed; }
+  tbody tr:hover .cellbox{ border-color:var(--border-strong); }
 
   /* ---------- shared small controls ---------- */
   .seg{
@@ -642,8 +714,13 @@
     .legend-role{ order:4; flex:none; width:100%; min-width:100%; }
     .cal-grid{ grid-template-columns:1fr; }
     .cal-day{ height:30px; font-size:12.5px; }   /* bigger tap target */
-    .maprow{ flex-wrap:wrap; }
-    .offbox{ flex:1 1 72px; }
+    .maphead{ display:none; }
+    .maprow{ grid-template-columns:1fr 86px; gap:8px 12px; }
+    .mapfield{ grid-column:1 / -1; padding-top:0; }
+    .mapsel{ grid-column:1; }
+    .mapshift{ grid-column:2; justify-content:flex-end; }
+    .offbox{ width:72px; }
+    .maplist{ padding:4px 10px 10px; }
     .custom-seed-row{ flex-direction:column; align-items:stretch; }
     .custom-seed-row .field{ flex:1 1 auto; }
     .fill-btn{ width:100%; }
@@ -824,6 +901,7 @@
         <div class="results-meta">Generated <span id="row-count">0</span> rows
           <span id="gen-span" class="span-note"></span></div>
         <div class="action-btns">
+          <button class="action-btn" id="edit-gen" onclick="toggleEdit('gen')">&#9998; Edit rows</button>
           <button class="action-btn" onclick="copyCSV('gen')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Copy CSV
@@ -834,9 +912,10 @@
           </button>
         </div>
       </div>
+      <div class="editbar" id="editbar-gen" style="display:none"></div>
       <div class="table-wrap"><div class="table-scroll">
         <table><thead><tr>
-          <th>#</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th>
+          <th>#</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th><th class="actcol"></th>
         </tr></thead><tbody id="gen-table-body"></tbody></table>
       </div></div>
     </div>
@@ -964,7 +1043,14 @@
       <div class="card-title"><span class="n">2</span> · Map their columns to ours</div>
       <div class="detected-cols" id="detected-cols"></div>
       <div class="colcount" id="colcount" onclick="document.getElementById('detected-cols').classList.toggle('open')"></div>
-      <div class="col-mapper" id="col-mapper" style="margin-top:16px;"></div>
+      <div class="maplist" style="margin-top:16px;">
+        <div class="maphead">
+          <div>Our field</div>
+          <div>Their column</div>
+          <div title="Shift the date by a number of days — e.g. -2 for an ad that previews early">Shift&nbsp;(days)</div>
+        </div>
+        <div id="col-mapper"></div>
+      </div>
 
       <div class="card-title" style="margin-top:24px;"><span class="n">3</span> · Date format &amp; fallback</div>
       <div class="form-grid">
@@ -1005,6 +1091,7 @@
       <div class="results-header">
         <div class="results-meta" id="parity">Cleaned <span id="clean-row-count">0</span> rows</div>
         <div class="action-btns">
+          <button class="action-btn" id="edit-clean" onclick="toggleEdit('clean')">&#9998; Edit rows</button>
           <button class="action-btn" onclick="copyCSV('clean')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Copy CSV
@@ -1015,9 +1102,10 @@
           </button>
         </div>
       </div>
+      <div class="editbar" id="editbar-clean" style="display:none"></div>
       <div class="table-wrap"><div class="table-scroll">
         <table><thead><tr>
-          <th>#</th><th title="The row number in the retailer\u2019s own file">Their row</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th>
+          <th>#</th><th title="The row number in the retailer\u2019s own file">Their row</th><th>flyer_type_id</th><th>name</th><th>available_from</th><th>available_to</th><th>valid_from</th><th>valid_to</th><th class="actcol"></th>
         </tr></thead><tbody id="clean-table-body"></tbody></table>
       </div></div>
     </div>
@@ -1331,11 +1419,28 @@
   }
 
   function renderResultTable(tbodyId, rows) {
-    document.getElementById(tbodyId).innerHTML = rows.map((r,i) => `
+    const ed = editGen;
+    const body = document.getElementById(tbodyId);
+    body.classList.toggle('editing', ed);
+    const wrap = body.closest('.table-wrap'); if (wrap) wrap.classList.toggle('editing', ed);
+    setEditBar('gen', ed);
+    document.getElementById(tbodyId).innerHTML = rows.map((r,i) => ed ? `
+      <tr>
+        <td class="row-num">${i+1}</td>
+        <td>${cellInput('gen',i,'flyer_type_id',r.flyer_type_id)}</td>
+        <td>${cellInput('gen',i,'name',r.name,'strong')}</td>
+        <td>${cellInput('gen',i,'available_from',r.available_from)}</td>
+        <td>${cellInput('gen',i,'available_to',r.available_to)}</td>
+        <td>${cellInput('gen',i,'valid_from',r.valid_from)}</td>
+        <td>${cellInput('gen',i,'valid_to',r.valid_to)}</td>
+        <td class="actcol"><button class="rowdel" title="Delete row" aria-label="Delete row"
+            onclick="deleteRow('gen',${i})">&times;</button></td>
+      </tr>` : `
       <tr>
         <td class="row-num">${i+1}</td><td>${r.flyer_type_id}</td>
         <td class="name-cell">${r.name}</td><td>${r.available_from}</td>
         <td>${r.available_to}</td><td>${r.valid_from}</td><td>${r.valid_to}</td>
+        <td class="actcol"></td>
       </tr>`).join('');
   }
 
@@ -1406,6 +1511,111 @@
             (${uniqueDupes.slice(0,2).map(d=>'&ldquo;'+d+'&rdquo;').join(', ')}${uniqueDupes.length>2?'…':''})</span>`
         : '');
   }
+
+
+  /* ============================================================
+     EDIT MODE — make a finished table editable before export.
+     Edits write straight into genRows / cleanRows, so Copy and
+     Download always match what is on screen.
+     ============================================================ */
+  let editGen = false, editClean = false;
+  const DATE_FIELDS = ['available_from','available_to','valid_from','valid_to'];
+
+  function rowsFor(which){ return which === 'gen' ? genRows : cleanRows; }
+
+  function toggleEdit(which){
+    if (which === 'gen'){ editGen = !editGen; } else { editClean = !editClean; }
+    const on = which === 'gen' ? editGen : editClean;
+    const btn = document.getElementById('edit-' + which);
+    if (btn){
+      btn.classList.toggle('primary', on);
+      btn.innerHTML = on ? '&#10003; Done editing' : '&#9998; Edit rows';
+    }
+
+    if (which === 'gen'){ renderResultTable('gen-table-body', genRows); describeGenRows(); }
+    else { renderCleanTable(); }
+  }
+
+  function editCell(which, i, field, value){
+    const rows = rowsFor(which);
+    if (!rows[i]) return;
+    rows[i][field] = value;
+    if (rows[i]._flags) rows[i]._flags[field] = '';        // a typed value is no longer "empty"
+    if (rows[i]._flags) rows[i]._needs = DATE_FIELDS.concat(['name']).some(f => rows[i]._flags[f]);
+    if (which === 'gen') describeGenRows(); else updateCleanSummary();
+    markEdited(which);
+  }
+
+  function addRow(which){
+    const rows = rowsFor(which);
+    const blank = { flyer_type_id: (which==='gen'
+                      ? (document.getElementById('ftype').value || '1000')
+                      : (document.getElementById('clean-ftype').value || '1000')),
+                    name:'', available_from:'', available_to:'', valid_from:'', valid_to:'' };
+    if (which === 'clean'){ blank._src = 'added'; blank._flags = {}; blank._needs = false; }
+    rows.push(blank);
+    if (which === 'gen'){ renderResultTable('gen-table-body', genRows);
+                          document.getElementById('row-count').textContent = genRows.length; describeGenRows(); }
+    else { renderCleanTable(); updateCleanSummary(); }
+    markEdited(which);
+    // focus the new row's name box
+    const body = document.getElementById(which === 'gen' ? 'gen-table-body' : 'clean-table-body');
+    const last = body.querySelector('tr:last-child input[data-f="name"]');
+    if (last) last.focus();
+  }
+
+  function deleteRow(which, i){
+    const rows = rowsFor(which);
+    rows.splice(i,1);
+    if (which === 'gen'){ renderResultTable('gen-table-body', genRows);
+                          document.getElementById('row-count').textContent = genRows.length; describeGenRows(); }
+    else { renderCleanTable(); updateCleanSummary(); }
+    markEdited(which);
+    showToast('Row removed');
+  }
+
+  let editedGen = false, editedClean = false;
+  function markEdited(which){
+    if (which === 'gen') editedGen = true; else editedClean = true;
+    const el = document.getElementById('edited-' + which);
+    if (el) el.textContent = ' · edited by hand';
+  }
+
+  /* the converter's summary line, recomputed after edits */
+  function updateCleanSummary(){
+    const el = document.getElementById('parity');
+    if (!el) return;
+    const attention = cleanRows.filter(r => r._needs).length;
+    const added = cleanRows.filter(r => r._src === 'added').length;
+    el.innerHTML = `<span class="${attention ? 'parity-warn' : 'parity-ok'}">${cleanRows.length} rows</span>` +
+      (attention ? ` · ${attention} need a look` : ' · all filled in') +
+      (added ? ` · ${added} added by hand` : '') +
+      `<span id="edited-clean" class="span-note">${editedClean ? ' · edited by hand' : ''}</span>`;
+  }
+
+  function setEditBar(which, on){
+    const host = document.getElementById('editbar-' + which);
+    if (!host) return;
+    host.style.display = on ? 'flex' : 'none';
+    if (on && !host.innerHTML) host.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>' +
+      '<span>Editing — type straight into any cell. Changes go into Copy and Download as you make them.</span>' +
+      '<button class="btn" onclick="addRow(\'' + which + '\')">+ Add row</button>' +
+      '<button class="btn" onclick="toggleEdit(\'' + which + '\')">Done</button>';
+  }
+
+  function cellInput(which, i, field, value, cls){
+    return `<input class="cellbox ${cls||''}" data-w="${which}" data-i="${i}" data-f="${field}"
+             value="${String(value==null?'':value).replace(/"/g,'&quot;')}"
+             ${DATE_FIELDS.indexOf(field)>-1 ? 'placeholder="dd-mm-yyyy"' : ''}>`;
+  }
+
+  // one delegated listener covers both tables
+  document.addEventListener('input', e => {
+    const t = e.target;
+    if (!t.classList || !t.classList.contains('cellbox')) return;
+    editCell(t.dataset.w, +t.dataset.i, t.dataset.f, t.value);
+  });
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -1684,14 +1894,16 @@
         headers.map(h => `<option value="${h}"${h === pick ? ' selected' : ''}>${h}</option>`)
       ).join('');
       const isDate = t !== 'name' && t !== 'flyer_type_id';
-      return `<div class="field">
-        <label>→ ${MAP_LABELS[t]}</label>
-        <div class="maprow">
+      return `<div class="maprow">
+        <div class="mapfield">${MAP_LABELS[t]}</div>
+        <div class="mapsel">
           <select id="map-${t}" onchange="onMapChange()">${opts}</select>
-          ${isDate ? `<input type="number" class="offbox" id="off-${t}" value="0" step="1"
-                        title="Shift this date by days — e.g. -2 for a preview" oninput="onMapChange()">` : ''}
+          <div class="map-sample" id="sample-${t}"></div>
         </div>
-        <div class="map-sample" id="sample-${t}"></div>
+        <div class="mapshift">${isDate
+          ? `<input type="number" class="offbox" id="off-${t}" value="0" step="1"
+               aria-label="Shift ${MAP_LABELS[t]} by days" oninput="onMapChange()">`
+          : '<span class="noshift">—</span>'}</div>
       </div>`;
     }).join('');
 
@@ -1979,6 +2191,26 @@
   }
 
   function renderCleanTable(){
+    const cbody = document.getElementById('clean-table-body');
+    cbody.classList.toggle('editing', editClean);
+    const cwrap = cbody.closest('.table-wrap'); if (cwrap) cwrap.classList.toggle('editing', editClean);
+    setEditBar('clean', editClean);
+    if (editClean){
+      document.getElementById('clean-table-body').innerHTML = cleanRows.map((r,i) => `
+        <tr>
+          <td class="row-num">${i+1}</td>
+          <td class="srccol">${r._src || ''}</td>
+          <td>${cellInput('clean',i,'flyer_type_id',r.flyer_type_id)}</td>
+          <td>${cellInput('clean',i,'name',r.name,'strong')}</td>
+          <td>${cellInput('clean',i,'available_from',r.available_from)}</td>
+          <td>${cellInput('clean',i,'available_to',r.available_to)}</td>
+          <td>${cellInput('clean',i,'valid_from',r.valid_from)}</td>
+          <td>${cellInput('clean',i,'valid_to',r.valid_to)}</td>
+          <td class="actcol"><button class="rowdel" title="Delete row" aria-label="Delete row"
+              onclick="deleteRow('clean',${i})">&times;</button></td>
+        </tr>`).join('');
+      return;
+    }
     document.getElementById('clean-table-body').innerHTML = cleanRows.map((r,i) => {
       const cell = (key) => {
         const f = r._flags[key];
@@ -1994,6 +2226,7 @@
         <td>${r.flyer_type_id}</td>
         <td class="name-cell">${r._flags.name ? '<span class="cell-missing">empty</span>' : r.name}</td>
         ${cell('available_from')}${cell('available_to')}${cell('valid_from')}${cell('valid_to')}
+        <td class="actcol"></td>
       </tr>`;
     }).join('');
   }
