@@ -1167,7 +1167,13 @@
           `Preview: <span>${cal}</span> → <span>${cal2}</span> → <span>${cal3}</span>`;
         return;
       } else {
-        hint.innerHTML = '<strong style="color:var(--primary)">Calendar mode is on, but the prefix isn\'t a month name — falling back to numeric wrap</strong>';
+        const pfx = (document.getElementById('prefix-text').value || '').trim();
+        hint.innerHTML = /^\d{4}$/.test(pfx)
+          ? '<strong style="color:var(--indigo)">That looks like a year + week code.</strong> Put <code>' + pfx +
+            '</code> in the <strong>Custom</strong> tab and hit Auto-detect — it rolls ' + pfx + ' \u2192 ' +
+            pfx.slice(0,2) + String(Math.min(52, (+pfx.slice(2)) + 1)).padStart(2,'0') +
+            ' and into the next year after week 52.'
+          : '<strong style="color:var(--primary)">Calendar mode is on, but the prefix isn\'t a month name — falling back to numeric wrap</strong>';
       }
     } else {
       hint.innerHTML = '↺ After week 52, number wraps back to <strong>01</strong>';
@@ -2040,6 +2046,38 @@
                  (!yr && suffix && !/^\s/.test(suffix) ? gap : '') + suffix;
         }
       };
+    }
+
+    // ---- 4c. YYWW — retail year + week number, e.g. 2701 = 2027 week 01 ----
+    m = s.match(/^(\D*?)(\d{2})(\d{2})(\D.*)?$/);
+    if (m) {
+      const pre = m[1] || '', yy = +m[2], ww = +m[3], post = m[4] || '';
+      if (ww >= 1 && ww <= 53 && yy >= 20 && yy <= 60) {
+        const WEEKS = 52;                         // retail year; week 52 rolls to the next year
+        return {
+          kind:'yyww',
+          title:'year + week number',
+          label:`year + week number — <strong>${m[2]}</strong> is 20${m[2]}, <strong>${m[3]}</strong> is the week; ` +
+                `rolls to <strong>${pad2((yy+1)%100)}01</strong> after week ${WEEKS}`,
+          needsStep:false,
+          render(i){
+            // weeks elapsed comes from the real dates, so weekly/biweekly/monthly all work
+            let weeksOn;
+            const startStr = document.getElementById('avail-from').value;
+            const start = startStr ? parseDateInput(startStr, null) : null;
+            if (start) {
+              const d = advance(start, i);
+              weeksOn = Math.round((d - start) / (7 * 86400000));
+            } else {
+              weeksOn = i * (cadenceMonthly ? 4 : Math.max(1, Math.round(cadenceDays / 7)));
+            }
+            const total = (ww - 1) + weeksOn;
+            const y = yy + Math.floor(total / WEEKS);
+            const w = (total % WEEKS) + 1;
+            return pre + pad2(y % 100) + pad2(w) + post;
+          }
+        };
+      }
     }
 
     // ---- 5. Any trailing number: "Week 39", "Flyer 7" ----
