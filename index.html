@@ -981,6 +981,11 @@
           <label>flyer_type_id <span class="lbl-hint">used when their file has none</span></label>
           <input type="text" id="clean-ftype" placeholder="e.g. 1000" value="1000" />
         </div>
+        <div class="field">
+          <label>year <span class="lbl-hint">for dates written without one, e.g. <code>Jan-01</code></span></label>
+          <input type="number" id="clean-year" min="2000" max="2099" placeholder="2027"
+                 value="" oninput="onMapChange()" />
+        </div>
       </div>
       <div class="naming-hint" style="margin-top:12px;">
         The small <strong>±</strong> box beside each date shifts it by days — use <code>-2</code> on
@@ -1487,10 +1492,47 @@
     reader.readAsArrayBuffer(file);
   }
 
+  const MAX_COLS = 400, MAX_ROWS = 20000;   // guards against Excel's phantom ranges
+  let trimNote = '';
+  // Excel often declares a range far larger than the real data (e.g. 16,327 columns).
+  // Cutting it back is what keeps the page responsive on real-world files.
+  function trimGrid(grid){
+    trimNote = '';
+    let lastCol = -1;
+    for (const row of grid){
+      for (let c = row.length - 1; c > lastCol; c--){
+        if (String(row[c] == null ? '' : row[c]).trim() !== ''){ if (c > lastCol) lastCol = c; break; }
+      }
+    }
+    const declaredCols = grid.reduce((m,r) => Math.max(m, r.length), 0);
+    const cols = Math.min(lastCol + 1, MAX_COLS);
+    let out = grid.map(r => r.slice(0, cols));
+    if (out.length > MAX_ROWS){ out = out.slice(0, MAX_ROWS); trimNote += ` first ${MAX_ROWS} rows only;`; }
+    if (declaredCols > cols + 5) trimNote += ` ignored ${declaredCols - cols} empty columns;`;
+    return out;
+  }
+
+  // Reading a sheet that declares 16,000 columns materialises millions of empty cells.
+  // Clamping the range up front is the difference between 6 seconds and instant.
+  function cappedRange(ws){
+    if (!ws || !ws['!ref']) return undefined;
+    try {
+      const r = XLSX.utils.decode_range(ws['!ref']);
+      if (r.e.c - r.s.c + 1 <= MAX_COLS && r.e.r - r.s.r + 1 <= MAX_ROWS) return undefined;
+      r.e.c = Math.min(r.e.c, r.s.c + MAX_COLS - 1);
+      r.e.r = Math.min(r.e.r, r.s.r + MAX_ROWS - 1);
+      return XLSX.utils.encode_range(r);
+    } catch(e){ return undefined; }
+  }
+
   function onSheetPick(){
     const name = document.getElementById('sheet-pick').value;
     const ws = cleanWB.Sheets[name];
-    cleanGrid = XLSX.utils.sheet_to_json(ws, { header:1, defval:'', raw:false, blankrows:true });
+    const opts = { header:1, defval:'', raw:false, blankrows:true };
+    const rng = cappedRange(ws);
+    if (rng) opts.range = rng;
+    cleanGrid = trimGrid(XLSX.utils.sheet_to_json(ws, opts));
+    invalidateCleanCaches();
     buildHeaderPicker();
     headerRowIdx = guessHeaderRow();
     document.getElementById('header-pick').value = String(headerRowIdx);
@@ -1529,14 +1571,29 @@
 
   function onHeaderPick(){
     headerRowIdx = parseInt(document.getElementById('header-pick').value, 10) || 0;
+    invalidateCleanCaches();
     rebuildMapping();
   }
 
   /* ---------- derived headers + data rows ---------- */
+  let _hdrs = null, _hdrIdx = null, _rows = null, _rangeCols = null;
+  function invalidateCleanCaches(){ _hdrs = _hdrIdx = _rows = _rangeCols = null; }
+
   function cleanHeaders(){
-    return rowCells(headerRowIdx).map((c,i) => c !== '' ? c : 'Column ' + (i+1));
+    if (_hdrs) return _hdrs;
+    _hdrs = rowCells(headerRowIdx).map((c,i) => {
+      const t = String(c).replace(/\s+/g,' ').trim();     // "Promotion \n Start Date" -> "Promotion Start Date"
+      return t !== '' ? t : 'Column ' + (i+1);
+    });
+    // duplicate header names would collide in the index map
+    const taken = new Set();
+    _hdrs = _hdrs.map(n => { let u = n, k = 2; while (taken.has(u)) u = n + ' (' + (k++) + ')'; taken.add(u); return u; });
+    _hdrIdx = new Map();
+    _hdrs.forEach((hname,i) => { if (!_hdrIdx.has(hname)) _hdrIdx.set(hname,i); });
+    return _hdrs;
   }
   function cleanDataRows(){
+    if (_rows) return _rows;
     const out = [];
     blankSkipped = 0;
     for (let i = headerRowIdx + 1; i < cleanGrid.length; i++){
@@ -1544,10 +1601,12 @@
       if (nonEmpty(cells) === 0){ blankSkipped++; continue; }   // spacer lines aren't rows
       out.push({ srcRow: i + 1, cells: cells });
     }
+    _rows = out;
     return out;
   }
   function cellAt(row, header){
-    const idx = cleanHeaders().indexOf(header);
+    cleanHeaders();                       // ensures the index map exists
+    const idx = _hdrIdx.has(header) ? _hdrIdx.get(header) : -1;
     return idx === -1 ? '' : (row.cells[idx] || '');
   }
 
@@ -1575,28 +1634,42 @@
   function autoPick(target, headers){ return autoPickScored(target, headers).col; }
 
   // does this column hold "date - date" cells?
-  function isRangeColumn(header){
-    const rows = cleanDataRows();
+  // one pass over a sample of rows marks every range-bearing column at once
+  function rangeColumnSet(){
+    if (_rangeCols) return _rangeCols;
+    const hdrs = cleanHeaders(), rows = cleanDataRows().slice(0, 40);
+    const firstVal = new Array(hdrs.length).fill('');
     for (const r of rows){
-      const v = cellAt(r, header);
-      if (String(v).trim() !== '') return !!splitRange(v);
+      for (let c = 0; c < hdrs.length; c++){
+        if (firstVal[c] === ''){
+          const v = r.cells[c];
+          if (v != null && String(v).trim() !== '') firstVal[c] = String(v);
+        }
+      }
     }
-    return false;
+    _rangeCols = new Set();
+    hdrs.forEach((hname,c) => { if (firstVal[c] && splitRange(firstVal[c])) _rangeCols.add(hname); });
+    return _rangeCols;
   }
+  function isRangeColumn(header){ return rangeColumnSet().has(header); }
 
   function rebuildMapping(){
     const headers = cleanHeaders();
     if (!headers.length){ document.getElementById('col-map-section').style.display = 'none'; return; }
 
+    const PILL_CAP = 120;
+    const shownHdrs = headers.slice(0, PILL_CAP);
     document.getElementById('detected-cols').innerHTML =
-      headers.map(h => {
+      shownHdrs.map(h => {
         const rng = isRangeColumn(h);
         return `<span class="col-pill${rng ? ' rangecol' : ''}" id="pill-${h.replace(/\W/g,'_')}">${h}${rng ? ' ⇄' : ''}</span>`;
-      }).join('');
+      }).join('') +
+      (headers.length > PILL_CAP ? `<span class="col-pill">+${headers.length-PILL_CAP} more</span>` : '');
 
     const rangeCols = headers.filter(isRangeColumn);
     const cc = document.getElementById('colcount');
-    if (cc) cc.textContent = headers.length + ' columns in their file — tap to show all';
+    if (cc) cc.textContent = headers.length + ' columns in their file — tap to show all' +
+      (trimNote ? ' ·' + trimNote.replace(/;$/,'') : '');
     document.getElementById('col-mapper').innerHTML = MAP_TARGETS.map(t => {
       const scored = autoPickScored(t, headers);
       let pick = scored.col;
@@ -1668,6 +1741,11 @@
     });
   }
 
+  function fallbackYear(){
+    const el = document.getElementById('clean-year');
+    const v = el ? parseInt(el.value, 10) : NaN;
+    return (!isNaN(v) && v > 1999 && v < 2100) ? v : new Date().getFullYear();
+  }
   function addDaysClean(d, n){ const r = new Date(d); r.setDate(r.getDate() + n); return r; }
   function dateOffset(key){
     const el = document.getElementById('off-' + key);
@@ -1758,8 +1836,32 @@
       }
     }
 
+    // "Fri-Jan-01", "Fri Jan 1", "Fri, Jan 01" — a weekday with no year.
+    // The weekday itself pins the year: only some years put Jan 1 on a Friday.
     let d = null, m;
-    if ((m = datePart.match(/^(19|20)(\d{2})(\d{2})(\d{2})$/))){
+    const WD = ['sun','mon','tue','wed','thu','fri','sat'];
+    if ((m = datePart.match(/^([a-z]{3,9})[,\s-]+([a-z]{3,9})[\s-]+(\d{1,2})$/i))){
+      const wd = WD.indexOf(m[1].slice(0,3).toLowerCase());
+      const mi = MONTHS.indexOf(m[2].slice(0,3).toLowerCase());
+      if (wd !== -1 && mi !== -1){
+        const day = +m[3], now = new Date().getFullYear(), hits = [];
+        for (let y = now - 1; y <= now + 7; y++){
+          const t = new Date(y, mi, day);
+          if (t.getMonth() === mi && t.getDate() === day && t.getDay() === wd) hits.push(t);
+        }
+        if (hits.length){
+          d = hits[0];
+        } else {
+          // weekday doesn't line up anywhere nearby — fall back to the stated year
+          d = new Date(fallbackYear(), mi, day);
+        }
+      }
+    }
+    if (!d && (m = datePart.match(/^([a-z]{3,9})[\s-]+(\d{1,2})$/i)) && MONTHS.indexOf(m[1].slice(0,3).toLowerCase()) !== -1){
+      d = new Date(fallbackYear(), MONTHS.indexOf(m[1].slice(0,3).toLowerCase()), +m[2]);
+    }
+    if (d){ /* resolved above */ }
+    else if ((m = datePart.match(/^(19|20)(\d{2})(\d{2})(\d{2})$/))){
       d = new Date(+(m[1]+m[2]), +m[3] - 1, +m[4]);               // 20261005
     } else if ((m = datePart.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/))){
       d = new Date(+m[1], +m[2] - 1, +m[3]);                       // ISO — unambiguous
@@ -1808,7 +1910,8 @@
     const lines = raw.split('\n').filter(l => l.trim());
     if (lines.length < 2){ document.getElementById('col-map-section').style.display = 'none'; return; }
     cleanWB = null;
-    cleanGrid = lines.map(l => parseCSVLine(l).map(v => v.replace(/^"|"$/g,'').trim()));
+    cleanGrid = trimGrid(lines.map(l => parseCSVLine(l).map(v => v.replace(/^"|"$/g,'').trim())));
+    invalidateCleanCaches();
     document.getElementById('sheet-row').style.display = 'grid';
     document.getElementById('sheet-pick').innerHTML = '<option>Pasted rows</option>';
     document.getElementById('clean-filemeta').innerHTML =
